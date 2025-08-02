@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
+import { Toaster } from '@/components/ui/sonner'
 import ThemeSelection from './components/ThemeSelection'
 import Settings from './components/Settings'
 import TeamSetup from './components/TeamSetup'
@@ -7,6 +8,7 @@ import GameRound from './components/GameRound'
 import RoundResults from './components/RoundResults'
 import Victory from './components/Victory'
 import Rules from './components/Rules'
+import Auth from './components/Auth'
 
 export interface Team {
   id: number
@@ -25,11 +27,20 @@ export interface GameState {
   currentTeam: number
   currentRound: number
   roundWords: Array<{ word: string; correct: boolean | null }>
-  gamePhase: 'theme' | 'settings' | 'teams' | 'game' | 'results' | 'victory' | 'rules'
+  gamePhase: 'auth' | 'theme' | 'settings' | 'teams' | 'game' | 'results' | 'victory' | 'rules'
   selectedTheme: string
 }
 
+export interface AuthUser {
+  id: string
+  username: string
+  email: string
+}
+
 function App() {
+  // Auth state
+  const [currentUser, setCurrentUser] = useKV<AuthUser | null>('alias-current-user', null)
+  
   // Persistent game data
   const [teams, setTeams] = useKV<Team[]>('alias-teams', [])
   const [settings, setSettings] = useKV<GameSettings>('alias-settings', {
@@ -89,38 +100,103 @@ function App() {
     setTimeLeft(settings.roundTime)
   }
 
+  const handleAuthSuccess = (user: AuthUser) => {
+    setCurrentUser(user)
+    setGameState(current => ({ ...current, gamePhase: 'theme' }))
+  }
+
+  const handleLogout = () => {
+    setCurrentUser(null)
+    resetGame()
+    setGameState(current => ({ ...current, gamePhase: 'theme' }))
+  }
+
+  // Show auth screen if no user is logged in and user tries to access custom collections
+  if (!currentUser && gameState.selectedTheme === 'custom') {
+    return <Auth onAuthSuccess={handleAuthSuccess} />
+  }
+
   const props = {
     teams,
     settings,
     gameState,
     currentWord,
     timeLeft,
+    currentUser,
     setCurrentWord,
     setTimeLeft,
     updateGamePhase,
     updateTeams,
     updateSettings,
     updateGameState,
-    resetGame
+    resetGame,
+    handleLogout
   }
 
   switch (gameState.gamePhase) {
+    case 'auth':
+      return (
+        <>
+          <Auth onAuthSuccess={handleAuthSuccess} />
+          <Toaster />
+        </>
+      )
     case 'theme':
-      return <ThemeSelection {...props} />
+      return (
+        <>
+          <ThemeSelection {...props} />
+          <Toaster />
+        </>
+      )
     case 'settings':
-      return <Settings {...props} />
+      return (
+        <>
+          <Settings {...props} />
+          <Toaster />
+        </>
+      )
     case 'rules':
-      return <Rules {...props} />
+      return (
+        <>
+          <Rules {...props} />
+          <Toaster />
+        </>
+      )
     case 'teams':
-      return <TeamSetup {...props} />
+      return (
+        <>
+          <TeamSetup {...props} />
+          <Toaster />
+        </>
+      )
     case 'game':
-      return <GameRound {...props} />
+      return (
+        <>
+          <GameRound {...props} />
+          <Toaster />
+        </>
+      )
     case 'results':
-      return <RoundResults {...props} />
+      return (
+        <>
+          <RoundResults {...props} />
+          <Toaster />
+        </>
+      )
     case 'victory':
-      return <Victory {...props} />
+      return (
+        <>
+          <Victory {...props} />
+          <Toaster />
+        </>
+      )
     default:
-      return <ThemeSelection {...props} />
+      return (
+        <>
+          <ThemeSelection {...props} />
+          <Toaster />
+        </>
+      )
   }
 }
 
