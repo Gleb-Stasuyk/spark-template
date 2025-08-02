@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Eye, EyeOff, UserPlus, LogIn } from '@phosphor-icons/react'
 import { toast } from 'sonner'
+import { saveUserInfo } from '../utils/kvUtils'
 
 interface AuthProps {
   onAuthSuccess: (user: { id: string; username: string; email: string }) => void
@@ -167,6 +168,13 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
         throw new Error('Failed to save user after multiple attempts')
       }
 
+      // Also save user info for sharing functionality
+      await saveUserInfo({
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email
+      })
+
       // Verify the user was saved
       try {
         const verifyUsers = await spark.kv.get<User[]>('alias-users') || []
@@ -263,6 +271,13 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
       // Clear form
       setLoginUsername('')
       setLoginPassword('')
+
+      // Also save user info for sharing functionality
+      await saveUserInfo({
+        id: user.id,
+        username: user.username,
+        email: user.email
+      })
 
       onAuthSuccess({
         id: user.id,

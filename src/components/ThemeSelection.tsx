@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Settings, Play, Question, User, Collection, ArrowLeft, Lock } from '@phosphor-icons/react'
 import { Team, GameSettings, GameState, AuthUser } from '../App'
 import { wordBanks, adultWordBanks, getAvailableThemes, isAdultTheme } from '../data/wordBanks'
-import { CustomCollection, getUserCollections } from '../utils/kvUtils'
+import { CustomCollection, getUserCollections, getAccessibleCollections } from '../utils/kvUtils'
 
 interface ThemeSelectionProps {
   teams: Team[]
@@ -101,8 +101,8 @@ export default function ThemeSelection({
     if (!currentUser) return
     
     try {
-      const userCollections = await getUserCollections(currentUser.id)
-      setCustomCollections(userCollections)
+      const accessibleCollections = await getAccessibleCollections(currentUser.id)
+      setCustomCollections(accessibleCollections)
     } catch (error) {
       console.error('Failed to load custom collections:', error)
       setCustomCollections([])
@@ -217,6 +217,16 @@ export default function ThemeSelection({
                       <Badge variant="secondary" className="text-xs">
                         {collection.words.length} words
                       </Badge>
+                      {collection.userId !== currentUser?.id && (
+                        <Badge variant="outline" className="text-xs">
+                          Shared
+                        </Badge>
+                      )}
+                      {collection.isPublic && (
+                        <Badge variant="secondary" className="text-xs">
+                          Public
+                        </Badge>
+                      )}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       <p className="font-medium mb-1">Sample words:</p>
@@ -230,6 +240,11 @@ export default function ThemeSelection({
                           </span>
                         ))}
                       </div>
+                      {collection.userId !== currentUser?.id && (
+                        <p className="mt-2 text-xs">
+                          Created by {collection.originalAuthor || 'Unknown'}
+                        </p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

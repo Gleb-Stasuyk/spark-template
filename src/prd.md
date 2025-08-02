@@ -24,6 +24,13 @@
 - **Game settings**: Adjustable winning score (20-100 points) and round time
 - **Rules display**: Clear explanation of gameplay and victory conditions
 
+### User Authentication & Collections
+- **User accounts**: Registration and login system for personalized features
+- **Custom word collections**: Users can create and manage personal word banks
+- **Collection sharing**: Share collections with specific users or make them public
+- **Access control**: Adult-themed collections require authentication
+- **Collection management**: Edit, delete, and organize custom word sets
+
 ### User Interface
 - **Intuitive navigation**: Smooth flow between setup, gameplay, and results
 - **Visual feedback**: Clear scoring display, team colors, and round progress
@@ -116,6 +123,20 @@ This ensures fair play - if a team reaches the winning score but other teams hav
 - **Word Bank**: Curated word collections by theme with appropriate difficulty
 - **Performance**: Fast word loading and smooth timer countdown
 - **Cross-platform**: Responsive design for mobile and desktop play
+
+## Collection Sharing System
+### Sharing Features
+- **Private collections**: Default visibility for new collections
+- **Public collections**: Visible to all users when marked public
+- **Targeted sharing**: Share with specific users by username
+- **Access management**: Remove access from specific users
+- **Collection attribution**: Original creator information preserved
+
+### Privacy & Access Control
+- **User authentication**: Required for creating and sharing collections
+- **Adult content**: Restricted to authenticated users only
+- **Ownership validation**: Only collection owners can edit, delete, or modify sharing
+- **Shared collection usage**: Shared users can use but not modify collections
 
 ## Edge Cases & Problem Scenarios
 - **Equal scores**: Highest score wins when target reached with equal rounds

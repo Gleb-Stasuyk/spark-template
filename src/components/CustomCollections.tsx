@@ -6,9 +6,23 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Trash, Edit, ArrowLeft, Collection } from '@phosphor-icons/react'
+import { Switch } from '@/components/ui/switch'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Separator } from '@/components/ui/separator'
+import { Plus, Trash, Edit, ArrowLeft, Collection, Share, Users, Globe, Lock } from '@phosphor-icons/react'
 import { toast } from 'sonner'
-import { CustomCollection, getCustomCollections, saveCustomCollections, getUserCollections } from '../utils/kvUtils'
+import { 
+  CustomCollection, 
+  getCustomCollections, 
+  saveCustomCollections, 
+  getUserCollections,
+  getSharedCollections,
+  shareCollection,
+  unshareCollection,
+  toggleCollectionPublic,
+  getUserByUsername,
+  getUsernameById
+} from '../utils/kvUtils'
 
 interface User {
   id: string
@@ -22,15 +36,23 @@ interface CustomCollectionsProps {
 }
 
 export default function CustomCollections({ user, onBack }: CustomCollectionsProps) {
-  const [collections, setCollections] = useState<CustomCollection[]>([])
+  const [myCollections, setMyCollections] = useState<CustomCollection[]>([])
+  const [sharedCollections, setSharedCollections] = useState<CustomCollection[]>([])
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
   const [editingCollection, setEditingCollection] = useState<CustomCollection | null>(null)
+  const [sharingCollection, setSharingCollection] = useState<CustomCollection | null>(null)
   
   // Form state
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [wordsText, setWordsText] = useState('')
+  const [isPublic, setIsPublic] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  
+  // Share form state
+  const [shareUsernames, setShareUsernames] = useState('')
+  const [isSharing, setIsSharing] = useState(false)
 
   // Guard against null user
   if (!user || !user.id) {
@@ -52,7 +74,8 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
       const success = await saveCustomCollections([])
       if (success) {
         toast.success('Cleared all data. You can now create new collections.')
-        setCollections([])
+        setMyCollections([])
+        setSharedCollections([])
       } else {
         toast.error('Failed to clear data')
       }
@@ -78,12 +101,16 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
     try {
       console.log('Loading collections for user:', user.id)
       const userCollections = await getUserCollections(user.id)
+      const shared = await getSharedCollections(user.id)
       console.log('User collections:', userCollections)
-      setCollections(userCollections)
+      console.log('Shared collections:', shared)
+      setMyCollections(userCollections)
+      setSharedCollections(shared)
     } catch (error) {
       console.error('Error loading collections:', error)
       toast.error('Failed to load collections')
-      setCollections([])
+      setMyCollections([])
+      setSharedCollections([])
     }
   }
 
@@ -91,6 +118,7 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
     setName('')
     setDescription('')
     setWordsText('')
+    setIsPublic(false)
     setEditingCollection(null)
   }
 
@@ -103,13 +131,23 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
     setName(collection.name)
     setDescription(collection.description)
     setWordsText(collection.words.join('\n'))
+    setIsPublic(collection.isPublic || false)
     setEditingCollection(collection)
     setIsCreateDialogOpen(true)
   }
 
+  const openShareDialog = (collection: CustomCollection) => {
+    setSharingCollection(collection)
+    setShareUsernames('')
+    setIsShareDialogOpen(true)
+  }
+
   const closeDialog = () => {
     setIsCreateDialogOpen(false)
+    setIsShareDialogOpen(false)
     resetForm()
+    setSharingCollection(null)
+    setShareUsernames('')
   }
 
   const validateForm = () => {
@@ -166,7 +204,10 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
           description: description.trim(),
           words,
           userId: user.id,
-          createdAt: editingCollection.createdAt
+          createdAt: editingCollection.createdAt,
+          isPublic,
+          sharedWith: editingCollection.sharedWith,
+          originalAuthor: editingCollection.originalAuthor
         }
 
         const updatedCollections = allCollections.map(collection =>
@@ -189,7 +230,9 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
           description: description.trim(),
           words,
           userId: user.id,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          isPublic,
+          originalAuthor: user.username
         }
 
         const updatedCollections = [...allCollections, newCollection]
@@ -236,6 +279,99 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
     }
   }
 
+  const handleShare = async () => {
+    if (!sharingCollection || !shareUsernames.trim()) {
+      toast.error('Please enter at least one username')
+      return
+    }
+
+    setIsSharing(true)
+
+    try {
+      // Parse usernames (comma-separated)
+      const usernames = shareUsernames
+        .split(',')
+        .map(u => u.trim())
+        .filter(u => u.length > 0)
+
+      if (usernames.length === 0) {
+        toast.error('Please enter valid usernames')
+        return
+      }
+
+      // Convert usernames to user IDs
+      const userIds: string[] = []
+      const notFoundUsers: string[] = []
+
+      for (const username of usernames) {
+        const userId = await getUserByUsername(username)
+        if (userId) {
+          userIds.push(userId)
+        } else {
+          notFoundUsers.push(username)
+        }
+      }
+
+      if (notFoundUsers.length > 0) {
+        toast.error(`Users not found: ${notFoundUsers.join(', ')}`)
+        return
+      }
+
+      if (userIds.length === 0) {
+        toast.error('No valid users found')
+        return
+      }
+
+      const success = await shareCollection(sharingCollection.id, userIds)
+      
+      if (success) {
+        toast.success(`Collection shared with ${usernames.join(', ')}`)
+        closeDialog()
+        await loadCollections()
+      } else {
+        toast.error('Failed to share collection')
+      }
+    } catch (error) {
+      console.error('Error sharing collection:', error)
+      toast.error('Failed to share collection')
+    } finally {
+      setIsSharing(false)
+    }
+  }
+
+  const handleTogglePublic = async (collection: CustomCollection) => {
+    try {
+      const newPublicStatus = !collection.isPublic
+      const success = await toggleCollectionPublic(collection.id, newPublicStatus)
+      
+      if (success) {
+        toast.success(newPublicStatus ? 'Collection is now public' : 'Collection is now private')
+        await loadCollections()
+      } else {
+        toast.error('Failed to update collection visibility')
+      }
+    } catch (error) {
+      console.error('Error toggling collection public status:', error)
+      toast.error('Failed to update collection visibility')
+    }
+  }
+
+  const handleUnshare = async (collection: CustomCollection, userId: string) => {
+    try {
+      const success = await unshareCollection(collection.id, [userId])
+      
+      if (success) {
+        toast.success('Collection access removed')
+        await loadCollections()
+      } else {
+        toast.error('Failed to remove access')
+      }
+    } catch (error) {
+      console.error('Error unsharing collection:', error)
+      toast.error('Failed to remove access')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 p-4">
       <div className="max-w-4xl mx-auto">
@@ -246,8 +382,8 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
             Back to Game
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold">My Custom Collections</h1>
-            <p className="text-muted-foreground">Create and manage your personal word collections</p>
+            <h1 className="text-3xl font-bold">Custom Collections</h1>
+            <p className="text-muted-foreground">Create, manage and share your personal word collections</p>
           </div>
           <div className="flex gap-2">
             <Button variant="destructive" size="sm" onClick={clearCorruptedData}>
@@ -313,6 +449,21 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
                   )}
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="collection-public">Make this collection public</Label>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="collection-public"
+                      checked={isPublic}
+                      onCheckedChange={setIsPublic}
+                      disabled={isLoading}
+                    />
+                    <Label htmlFor="collection-public" className="text-sm text-muted-foreground">
+                      {isPublic ? 'Anyone can see and use this collection' : 'Only you and people you share with can see this collection'}
+                    </Label>
+                  </div>
+                </div>
+
                 <div className="flex gap-2 justify-end">
                   <Button variant="outline" onClick={closeDialog} disabled={isLoading}>
                     Cancel
@@ -327,79 +478,278 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
           </div>
         </div>
 
-        {/* Collections Grid */}
-        {collections.length === 0 ? (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Collection size={64} className="mx-auto mb-4 text-muted-foreground" />
-              <CardTitle className="mb-2">No Collections Yet</CardTitle>
-              <CardDescription className="mb-4">
-                Create your first custom word collection to get started
-              </CardDescription>
-              <Button onClick={openCreateDialog} className="flex items-center gap-2 mx-auto">
-                <Plus size={16} />
-                Create Collection
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {collections.map((collection) => (
-              <Card key={collection.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg">{collection.name}</CardTitle>
-                      {collection.description && (
-                        <CardDescription className="mt-1">
-                          {collection.description}
-                        </CardDescription>
-                      )}
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openEditDialog(collection)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Edit size={14} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(collection.id)}
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                      >
-                        <Trash size={14} />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <Badge variant="secondary" className="text-xs">
-                      {collection.words.length} words
-                    </Badge>
-                    
-                    <div className="text-sm text-muted-foreground">
-                      <p className="font-medium mb-1">Sample words:</p>
-                      <p className="line-clamp-2">
-                        {collection.words.slice(0, 3).join(', ')}
-                        {collection.words.length > 3 && '...'}
-                      </p>
-                    </div>
+        {/* Share Dialog */}
+        <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Share Collection</DialogTitle>
+              <DialogDescription>
+                Share "{sharingCollection?.name}" with other users
+              </DialogDescription>
+            </DialogHeader>
 
-                    <p className="text-xs text-muted-foreground">
-                      Created {new Date(collection.createdAt).toLocaleDateString()}
-                    </p>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="share-usernames">Usernames (comma-separated)</Label>
+                <Input
+                  id="share-usernames"
+                  placeholder="e.g., john, mary, alex"
+                  value={shareUsernames}
+                  onChange={(e) => setShareUsernames(e.target.value)}
+                  disabled={isSharing}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Enter the usernames of people you want to share this collection with
+                </p>
+              </div>
+
+              {sharingCollection?.sharedWith && sharingCollection.sharedWith.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Currently shared with:</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {sharingCollection.sharedWith.map((userId) => (
+                      <SharedUserBadge
+                        key={userId}
+                        userId={userId}
+                        onRemove={() => handleUnshare(sharingCollection, userId)}
+                      />
+                    ))}
                   </div>
+                </div>
+              )}
+
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={closeDialog} disabled={isSharing}>
+                  Cancel
+                </Button>
+                <Button onClick={handleShare} disabled={isSharing}>
+                  {isSharing ? 'Sharing...' : 'Share'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Collections Content */}
+        <Tabs defaultValue="my-collections" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="my-collections" className="flex items-center gap-2">
+              <Collection size={16} />
+              My Collections ({myCollections.length})
+            </TabsTrigger>
+            <TabsTrigger value="shared-collections" className="flex items-center gap-2">
+              <Users size={16} />
+              Shared with Me ({sharedCollections.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="my-collections" className="mt-6">
+            {myCollections.length === 0 ? (
+              <Card className="text-center py-12">
+                <CardContent>
+                  <Collection size={64} className="mx-auto mb-4 text-muted-foreground" />
+                  <CardTitle className="mb-2">No Collections Yet</CardTitle>
+                  <CardDescription className="mb-4">
+                    Create your first custom word collection to get started
+                  </CardDescription>
+                  <Button onClick={openCreateDialog} className="flex items-center gap-2 mx-auto">
+                    <Plus size={16} />
+                    Create Collection
+                  </Button>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        )}
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {myCollections.map((collection) => (
+                  <CollectionCard
+                    key={collection.id}
+                    collection={collection}
+                    isOwner={true}
+                    onEdit={openEditDialog}
+                    onDelete={handleDelete}
+                    onShare={openShareDialog}
+                    onTogglePublic={handleTogglePublic}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="shared-collections" className="mt-6">
+            {sharedCollections.length === 0 ? (
+              <Card className="text-center py-12">
+                <CardContent>
+                  <Users size={64} className="mx-auto mb-4 text-muted-foreground" />
+                  <CardTitle className="mb-2">No Shared Collections</CardTitle>
+                  <CardDescription>
+                    Collections shared with you by other users will appear here
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {sharedCollections.map((collection) => (
+                  <CollectionCard
+                    key={collection.id}
+                    collection={collection}
+                    isOwner={false}
+                    onEdit={openEditDialog}
+                    onDelete={handleDelete}
+                    onShare={openShareDialog}
+                    onTogglePublic={handleTogglePublic}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
+  )
+}
+
+// Collection Card Component
+interface CollectionCardProps {
+  collection: CustomCollection
+  isOwner: boolean
+  onEdit: (collection: CustomCollection) => void
+  onDelete: (collectionId: string) => void
+  onShare: (collection: CustomCollection) => void
+  onTogglePublic: (collection: CustomCollection) => void
+}
+
+function CollectionCard({ collection, isOwner, onEdit, onDelete, onShare, onTogglePublic }: CollectionCardProps) {
+  return (
+    <Card className="hover:shadow-lg transition-shadow">
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <CardTitle className="text-lg">{collection.name}</CardTitle>
+              {collection.isPublic && (
+                <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                  <Globe size={12} />
+                  Public
+                </Badge>
+              )}
+              {!isOwner && (
+                <Badge variant="outline" className="text-xs">
+                  Shared
+                </Badge>
+              )}
+            </div>
+            {collection.description && (
+              <CardDescription className="mt-1">
+                {collection.description}
+              </CardDescription>
+            )}
+            {!isOwner && collection.originalAuthor && (
+              <p className="text-xs text-muted-foreground mt-1">
+                by {collection.originalAuthor}
+              </p>
+            )}
+          </div>
+          <div className="flex gap-1">
+            {isOwner && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onShare(collection)}
+                  className="h-8 w-8 p-0"
+                  title="Share collection"
+                >
+                  <Share size={14} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onTogglePublic(collection)}
+                  className="h-8 w-8 p-0"
+                  title={collection.isPublic ? "Make private" : "Make public"}
+                >
+                  {collection.isPublic ? <Lock size={14} /> : <Globe size={14} />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onEdit(collection)}
+                  className="h-8 w-8 p-0"
+                >
+                  <Edit size={14} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onDelete(collection.id)}
+                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                >
+                  <Trash size={14} />
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          <div className="flex gap-2 flex-wrap">
+            <Badge variant="secondary" className="text-xs">
+              {collection.words.length} words
+            </Badge>
+            {collection.sharedWith && collection.sharedWith.length > 0 && isOwner && (
+              <Badge variant="outline" className="text-xs flex items-center gap-1">
+                <Users size={10} />
+                Shared with {collection.sharedWith.length}
+              </Badge>
+            )}
+          </div>
+          
+          <div className="text-sm text-muted-foreground">
+            <p className="font-medium mb-1">Sample words:</p>
+            <p className="line-clamp-2">
+              {collection.words.slice(0, 3).join(', ')}
+              {collection.words.length > 3 && '...'}
+            </p>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            Created {new Date(collection.createdAt).toLocaleDateString()}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Shared User Badge Component
+interface SharedUserBadgeProps {
+  userId: string
+  onRemove: () => void
+}
+
+function SharedUserBadge({ userId, onRemove }: SharedUserBadgeProps) {
+  const [username, setUsername] = useState<string | null>(null)
+
+  useEffect(() => {
+    const loadUsername = async () => {
+      const name = await getUsernameById(userId)
+      setUsername(name || userId)
+    }
+    loadUsername()
+  }, [userId])
+
+  return (
+    <Badge variant="secondary" className="flex items-center gap-2">
+      {username || userId}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+        onClick={onRemove}
+      >
+        ×
+      </Button>
+    </Badge>
   )
 }
