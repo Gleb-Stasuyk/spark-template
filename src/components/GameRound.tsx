@@ -37,12 +37,20 @@ export default function GameRound({
 
   const currentTeam = teams[gameState.currentTeam]
 
-  // Generate initial word
+  // Generate initial word and auto-start round
   useEffect(() => {
     if (!currentWord && gameState.selectedTheme) {
       setCurrentWord(getRandomWord(gameState.selectedTheme))
     }
-  }, [currentWord, gameState.selectedTheme, setCurrentWord])
+    
+    // Auto-start the round if it's not active and timer is at full time
+    if (!isActive && timeLeft === settings.roundTime) {
+      setIsActive(true)
+      setCorrectCount(0)
+      setSkipCount(0)
+      updateGameState({ roundWords: [] })
+    }
+  }, [currentWord, gameState.selectedTheme, setCurrentWord, isActive, timeLeft, settings.roundTime, updateGameState])
 
   // Timer logic
   useEffect(() => {
@@ -123,54 +131,10 @@ export default function GameRound({
     handleTimeUp()
   }
 
-  const startRound = () => {
-    setIsActive(true)
-    setTimeLeft(settings.roundTime)
-    setCorrectCount(0)
-    setSkipCount(0)
-    updateGameState({ roundWords: [] })
-  }
-
   const getTimerColor = () => {
     if (timeLeft > 30) return 'text-success'
     if (timeLeft > 10) return 'text-yellow-500'
     return 'text-destructive'
-  }
-
-  if (!isActive && timeLeft === settings.roundTime) {
-    return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="mb-8">
-            <div className={`inline-block px-6 py-3 rounded-full mb-4 ${currentTeam?.color || 'bg-primary'}`}>
-              <span className="text-white font-bold text-xl">{currentTeam?.name}</span>
-            </div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Get Ready!
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Round {gameState.currentRound} • {settings.roundTime} seconds
-            </p>
-          </div>
-
-          <Card className="mb-8">
-            <CardContent className="p-8">
-              <h2 className="text-2xl font-semibold mb-4">How to Play</h2>
-              <div className="space-y-2 text-left">
-                <p>• Explain words to your teammates without saying the actual word</p>
-                <p>• No gestures, translations, or direct hints allowed</p>
-                <p>• +1 point for each correct guess</p>
-                <p>• -1 point for each skipped word</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Button onClick={startRound} size="lg" className="px-12">
-            Start Round
-          </Button>
-        </div>
-      </div>
-    )
   }
 
   return (
