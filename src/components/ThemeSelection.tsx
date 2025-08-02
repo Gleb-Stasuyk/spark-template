@@ -293,6 +293,63 @@ export default function ThemeSelection({
               </CardContent>
             </Card>
           ))}
+          
+          {/* Custom Collections Card */}
+          <Card
+            className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg border-2 border-dashed ${
+              gameState.selectedTheme?.startsWith('custom-')
+                ? 'ring-2 ring-primary shadow-lg scale-105 border-primary'
+                : 'border-border hover:border-primary/50'
+            }`}
+            onClick={handleCustomCollections}
+          >
+            <CardContent className="p-6 text-center">
+              <div className="text-4xl mb-3">✨</div>
+              <h3 className="text-xl font-semibold text-foreground mb-2">
+                Custom Collections
+              </h3>
+              <p className="text-muted-foreground text-sm mb-3">
+                {currentUser 
+                  ? `${customCollections.length} personal collections`
+                  : 'Login to create custom words'
+                }
+              </p>
+              <div className="text-xs text-muted-foreground">
+                {currentUser ? (
+                  <>
+                    <p className="font-medium mb-1">Your collections:</p>
+                    <div className="flex flex-wrap gap-1 justify-center">
+                      {customCollections.length > 0 ? (
+                        customCollections.slice(0, 3).map((collection, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-muted rounded-md text-xs truncate max-w-[80px]"
+                            title={collection.name}
+                          >
+                            {collection.name}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="px-2 py-1 bg-muted/50 rounded-md text-xs italic">
+                          No collections yet
+                        </span>
+                      )}
+                      {customCollections.length > 3 && (
+                        <span className="px-2 py-1 bg-muted rounded-md text-xs">
+                          +{customCollections.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center justify-center gap-1">
+                    <User size={12} />
+                    <span>Login required</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="flex justify-between items-center">
@@ -315,16 +372,7 @@ export default function ThemeSelection({
               Rules
             </Button>
 
-            {currentUser ? (
-              <Button
-                variant="outline"
-                onClick={handleCustomCollections}
-                className="flex items-center gap-2"
-              >
-                <Collection size={20} />
-                Custom Collections
-              </Button>
-            ) : (
+            {!currentUser && (
               <Button
                 variant="outline"
                 onClick={() => updateGamePhase('auth')}
