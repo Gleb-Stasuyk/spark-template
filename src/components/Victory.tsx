@@ -14,6 +14,7 @@ interface VictoryProps {
 
 export default function Victory({
   teams,
+  gameState,
   updateGamePhase,
   resetGame
 }: VictoryProps) {
@@ -114,6 +115,9 @@ export default function Victory({
         <div className="mt-8 space-y-2">
           <p className="text-lg text-muted-foreground">
             🎊 Congratulations to {winner?.name}! 🎊
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Game completed in {gameState.currentRound} rounds
           </p>
           <p className="text-sm text-muted-foreground">
             Great game everyone! Ready for another round?

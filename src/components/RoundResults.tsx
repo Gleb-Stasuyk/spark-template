@@ -52,10 +52,10 @@ export default function RoundResults({
             <span className="text-white font-bold text-xl">{currentTeam?.name}</span>
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Round Results
+            Round {gameState.currentRound} Results
           </h1>
           <p className="text-muted-foreground text-lg">
-            Round {gameState.currentRound} Complete
+            Total rounds played: {gameState.currentRound}
           </p>
         </div>
 

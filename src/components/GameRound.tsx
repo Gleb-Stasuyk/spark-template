@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { CheckCircle, XCircle, SkipForward, StopCircle } from '@phosphor-icons/react'
+import { CheckCircle, XCircle, SkipForward, StopCircle, House } from '@phosphor-icons/react'
 import { Team, GameSettings, GameState } from '../App'
 import { getRandomWord } from '../data/wordBanks'
 
@@ -23,6 +23,7 @@ interface GameRoundProps {
   updateGamePhase: (phase: GameState['gamePhase']) => void
   updateTeams: (teams: Team[]) => void
   updateGameState: (updates: Partial<GameState>) => void
+  resetGame: () => void
 }
 
 export default function GameRound({
@@ -35,7 +36,8 @@ export default function GameRound({
   setTimeLeft,
   updateGamePhase,
   updateTeams,
-  updateGameState
+  updateGameState,
+  resetGame
 }: GameRoundProps) {
   const [isActive, setIsActive] = useState(false)
   const [correctCount, setCorrectCount] = useState(0)
@@ -133,6 +135,10 @@ export default function GameRound({
     updateGamePhase('results')
   }
 
+  const handleMainMenu = () => {
+    resetGame()
+  }
+
   const handleEndEarly = () => {
     setIsActive(false)
     handleTimeUp()
@@ -149,8 +155,14 @@ export default function GameRound({
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <div className={`px-4 py-2 rounded-full ${currentTeam?.color || 'bg-primary'}`}>
-            <span className="text-white font-semibold">{currentTeam?.name}</span>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={handleMainMenu} size="sm">
+              <House size={16} className="mr-2" />
+              Main Menu
+            </Button>
+            <div className={`px-4 py-2 rounded-full ${currentTeam?.color || 'bg-primary'}`}>
+              <span className="text-white font-semibold">{currentTeam?.name}</span>
+            </div>
           </div>
           
           <div className={`text-timer ${getTimerColor()}`}>
