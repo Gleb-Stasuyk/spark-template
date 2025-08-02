@@ -323,7 +323,8 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
                 </div>
               </div>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
         </div>
 
         {/* Collections Grid */}
