@@ -45,6 +45,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
   }
 
   const handleRegister = async () => {
+    // Validation checks before setting loading state
     if (!regUsername.trim()) {
       toast.error('Username is required')
       return
@@ -77,11 +78,13 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
 
       if (usernameExists) {
         toast.error('Username already exists')
+        setIsLoading(false)
         return
       }
 
       if (emailExists) {
         toast.error('Email already registered')
+        setIsLoading(false)
         return
       }
 
@@ -99,6 +102,12 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
 
       toast.success('Registration successful!')
 
+      // Clear form
+      setRegUsername('')
+      setRegEmail('')
+      setRegPassword('')
+      setRegConfirmPassword('')
+
       // Auto-login after registration
       onAuthSuccess({
         id: newUser.id,
@@ -107,6 +116,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
       })
 
     } catch (error) {
+      console.error('Registration error:', error)
       toast.error('Registration failed. Please try again.')
     } finally {
       setIsLoading(false)
@@ -114,6 +124,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
   }
 
   const handleLogin = async () => {
+    // Validation checks before setting loading state
     if (!loginUsername.trim()) {
       toast.error('Username is required')
       return
@@ -137,10 +148,15 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
 
       if (!user || user.password !== loginPassword) {
         toast.error('Invalid username/email or password')
+        setIsLoading(false)
         return
       }
 
       toast.success(`Welcome back, ${user.username}!`)
+
+      // Clear form
+      setLoginUsername('')
+      setLoginPassword('')
 
       onAuthSuccess({
         id: user.id,
@@ -149,6 +165,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
       })
 
     } catch (error) {
+      console.error('Login error:', error)
       toast.error('Login failed. Please try again.')
     } finally {
       setIsLoading(false)
