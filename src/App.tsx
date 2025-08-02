@@ -9,6 +9,7 @@ import RoundResults from './components/RoundResults'
 import Victory from './components/Victory'
 import Rules from './components/Rules'
 import Auth from './components/Auth'
+import AuthTest from './components/AuthTest'
 
 export interface Team {
   id: number
@@ -27,7 +28,7 @@ export interface GameState {
   currentTeam: number
   currentRound: number
   roundWords: Array<{ word: string; correct: boolean | null }>
-  gamePhase: 'auth' | 'theme' | 'settings' | 'teams' | 'game' | 'results' | 'victory' | 'rules'
+  gamePhase: 'auth' | 'theme' | 'settings' | 'teams' | 'game' | 'results' | 'victory' | 'rules' | 'auth-test'
   selectedTheme: string
 }
 
@@ -187,6 +188,13 @@ function App() {
       return (
         <>
           <Victory {...props} />
+          <Toaster />
+        </>
+      )
+    case 'auth-test':
+      return (
+        <>
+          <AuthTest {...props} />
           <Toaster />
         </>
       )

@@ -201,6 +201,16 @@ export default function ThemeSelection({
                 Login / Register
               </Button>
             )}
+            
+            {process.env.NODE_ENV === 'development' && (
+              <Button
+                variant="outline"
+                onClick={() => updateGamePhase('auth-test')}
+                className="flex items-center gap-2 text-xs"
+              >
+                Test Auth
+              </Button>
+            )}
           </div>
 
           <Button
