@@ -44,6 +44,37 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
     return password.length >= 6
   }
 
+  // Test KV operations
+  const testKVOperations = async () => {
+    try {
+      console.log('Testing KV operations...')
+      
+      // Test 1: Basic set/get
+      await spark.kv.set('test-key', { message: 'hello' })
+      const testResult = await spark.kv.get('test-key')
+      console.log('KV test result:', testResult)
+      
+      // Test 2: Get non-existent key
+      const nonExistent = await spark.kv.get('non-existent-key')
+      console.log('Non-existent key result:', nonExistent)
+      
+      // Test 3: Test with user-like data
+      const testUser = { id: 'test', username: 'test', email: 'test@test.com', password: 'test' }
+      await spark.kv.set('test-users', [testUser])
+      const users = await spark.kv.get<User[]>('test-users')
+      console.log('Test users result:', users)
+      
+      // Clean up
+      await spark.kv.delete('test-key')
+      await spark.kv.delete('test-users')
+      
+      toast.success('KV operations test completed - check console')
+    } catch (error) {
+      console.error('KV test error:', error)
+      toast.error('KV test failed - check console')
+    }
+  }
+
   const handleRegister = async () => {
     // Validation checks before setting loading state
     if (!regUsername.trim()) {
@@ -69,12 +100,26 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
     setIsLoading(true)
 
     try {
-      // Get existing users
-      const existingUsers = await spark.kv.get<User[]>('alias-users') || []
+      console.log('Starting registration process...')
+      
+      // Get existing users with more detailed logging
+      let existingUsers: User[] = []
+      try {
+        const users = await spark.kv.get<User[]>('alias-users')
+        existingUsers = users || []
+        console.log('Retrieved existing users:', existingUsers.length)
+      } catch (kvError) {
+        console.warn('KV get error (using empty array):', kvError)
+        existingUsers = []
+      }
       
       // Check if username or email already exists
-      const usernameExists = existingUsers.some(user => user.username.toLowerCase() === regUsername.toLowerCase())
-      const emailExists = existingUsers.some(user => user.email.toLowerCase() === regEmail.toLowerCase())
+      const usernameExists = existingUsers.some(user => 
+        user && user.username && user.username.toLowerCase() === regUsername.toLowerCase()
+      )
+      const emailExists = existingUsers.some(user => 
+        user && user.email && user.email.toLowerCase() === regEmail.toLowerCase()
+      )
 
       if (usernameExists) {
         toast.error('Username already exists')
@@ -90,15 +135,50 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
 
       // Create new user
       const newUser: User = {
-        id: Date.now().toString(),
+        id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         username: regUsername.trim(),
         email: regEmail.toLowerCase().trim(),
         password: regPassword // In a real app, this would be hashed
       }
 
-      // Save user
+      console.log('Creating new user:', { id: newUser.id, username: newUser.username, email: newUser.email })
+
+      // Save user with retry logic
       const updatedUsers = [...existingUsers, newUser]
-      await spark.kv.set('alias-users', updatedUsers)
+      let retries = 3
+      let saved = false
+
+      while (retries > 0 && !saved) {
+        try {
+          await spark.kv.set('alias-users', updatedUsers)
+          console.log('User saved successfully')
+          saved = true
+        } catch (saveError) {
+          console.error(`Save attempt failed (${4 - retries}/3):`, saveError)
+          retries--
+          if (retries > 0) {
+            // Wait a bit before retrying
+            await new Promise(resolve => setTimeout(resolve, 500))
+          }
+        }
+      }
+
+      if (!saved) {
+        throw new Error('Failed to save user after multiple attempts')
+      }
+
+      // Verify the user was saved
+      try {
+        const verifyUsers = await spark.kv.get<User[]>('alias-users') || []
+        const userFound = verifyUsers.find(u => u.id === newUser.id)
+        if (!userFound) {
+          throw new Error('User verification failed - user not found after save')
+        }
+        console.log('User verification successful')
+      } catch (verifyError) {
+        console.error('User verification failed:', verifyError)
+        throw new Error('Registration verification failed')
+      }
 
       toast.success('Registration successful!')
 
@@ -117,7 +197,8 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
 
     } catch (error) {
       console.error('Registration error:', error)
-      toast.error('Registration failed. Please try again.')
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      toast.error(`Registration failed: ${errorMessage}`)
     } finally {
       setIsLoading(false)
     }
@@ -138,16 +219,41 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
     setIsLoading(true)
 
     try {
-      const existingUsers = await spark.kv.get<User[]>('alias-users') || []
+      console.log('Starting login process...')
+      
+      let existingUsers: User[] = []
+      try {
+        const users = await spark.kv.get<User[]>('alias-users')
+        existingUsers = users || []
+        console.log('Retrieved users for login:', existingUsers.length)
+      } catch (kvError) {
+        console.warn('KV get error during login:', kvError)
+        existingUsers = []
+      }
+
+      if (existingUsers.length === 0) {
+        toast.error('No users found. Please register first.')
+        setIsLoading(false)
+        return
+      }
       
       // Find user by username or email
       const user = existingUsers.find(u => 
-        u.username.toLowerCase() === loginUsername.toLowerCase() || 
-        u.email.toLowerCase() === loginUsername.toLowerCase()
+        u && u.username && u.email &&
+        (u.username.toLowerCase() === loginUsername.toLowerCase() || 
+         u.email.toLowerCase() === loginUsername.toLowerCase())
       )
 
-      if (!user || user.password !== loginPassword) {
-        toast.error('Invalid username/email or password')
+      console.log('User lookup result:', user ? 'found' : 'not found')
+
+      if (!user) {
+        toast.error('User not found')
+        setIsLoading(false)
+        return
+      }
+
+      if (user.password !== loginPassword) {
+        toast.error('Invalid password')
         setIsLoading(false)
         return
       }
@@ -166,7 +272,8 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
 
     } catch (error) {
       console.error('Login error:', error)
-      toast.error('Login failed. Please try again.')
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      toast.error(`Login failed: ${errorMessage}`)
     } finally {
       setIsLoading(false)
     }
@@ -184,6 +291,12 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 flex gap-2">
+            <Button onClick={testKVOperations} variant="outline" size="sm" className="text-xs">
+              Test KV
+            </Button>
+          </div>
+          
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login" className="flex items-center gap-2">
