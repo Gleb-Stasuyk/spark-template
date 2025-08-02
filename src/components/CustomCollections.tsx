@@ -47,10 +47,16 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
 
   const loadCollections = async () => {
     try {
+      console.log('Loading collections for user:', user.id)
       const allCollections = await spark.kv.get<CustomCollection[]>('alias-custom-collections') || []
+      console.log('All collections from storage:', allCollections)
+      
       const userCollections = allCollections.filter(collection => collection.userId === user.id)
+      console.log('User collections:', userCollections)
+      
       setCollections(userCollections)
     } catch (error) {
+      console.error('Error loading collections:', error)
       toast.error('Failed to load collections')
     }
   }
@@ -115,7 +121,10 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
         .map(word => word.trim())
         .filter(word => word.length > 0)
 
+      console.log('Saving collection:', { name, description, words, userId: user.id })
+
       const allCollections = await spark.kv.get<CustomCollection[]>('alias-custom-collections') || []
+      console.log('Existing collections:', allCollections)
 
       if (editingCollection) {
         // Update existing collection
@@ -130,6 +139,7 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
           collection.id === editingCollection.id ? updatedCollection : collection
         )
 
+        console.log('Updating collections:', updatedCollections)
         await spark.kv.set('alias-custom-collections', updatedCollections)
         toast.success('Collection updated successfully!')
       } else {
@@ -144,14 +154,18 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
         }
 
         const updatedCollections = [...allCollections, newCollection]
+        console.log('Creating new collection:', newCollection)
+        console.log('All collections after adding:', updatedCollections)
+        
         await spark.kv.set('alias-custom-collections', updatedCollections)
         toast.success('Collection created successfully!')
       }
 
       closeDialog()
-      loadCollections()
+      await loadCollections()
     } catch (error) {
-      toast.error('Failed to save collection')
+      console.error('Error saving collection:', error)
+      toast.error(`Failed to save collection: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsLoading(false)
     }
