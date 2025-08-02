@@ -1,0 +1,246 @@
+import { useState, useEffect, useCallback } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { CheckCircle, XCircle, SkipForward, StopCircle } from '@phosphor-icons/react'
+import { Team, GameSettings, GameState } from '../App'
+import { getRandomWord, formatTime } from '../lib/gameData'
+
+interface GameRoundProps {
+  teams: Team[]
+  settings: GameSettings
+  gameState: GameState
+  currentWord: string
+  timeLeft: number
+  setCurrentWord: (word: string) => void
+  setTimeLeft: (time: number) => void
+  updateGamePhase: (phase: GameState['gamePhase']) => void
+  updateTeams: (teams: Team[]) => void
+  updateGameState: (updates: Partial<GameState>) => void
+}
+
+export default function GameRound({
+  teams,
+  settings,
+  gameState,
+  currentWord,
+  timeLeft,
+  setCurrentWord,
+  setTimeLeft,
+  updateGamePhase,
+  updateTeams,
+  updateGameState
+}: GameRoundProps) {
+  const [isActive, setIsActive] = useState(false)
+  const [correctCount, setCorrectCount] = useState(0)
+  const [skipCount, setSkipCount] = useState(0)
+  const [shakeAnimation, setShakeAnimation] = useState(false)
+
+  const currentTeam = teams[gameState.currentTeam]
+
+  // Generate initial word
+  useEffect(() => {
+    if (!currentWord && gameState.selectedTheme) {
+      setCurrentWord(getRandomWord(gameState.selectedTheme))
+    }
+  }, [currentWord, gameState.selectedTheme, setCurrentWord])
+
+  // Timer logic
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null
+    
+    if (isActive && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            setIsActive(false)
+            handleTimeUp()
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+    }
+
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [isActive, timeLeft, setTimeLeft])
+
+  const getNextWord = useCallback(() => {
+    if (gameState.selectedTheme) {
+      setCurrentWord(getRandomWord(gameState.selectedTheme))
+    }
+  }, [gameState.selectedTheme, setCurrentWord])
+
+  const handleCorrect = () => {
+    const newRoundWords = [...gameState.roundWords, { word: currentWord, correct: true }]
+    updateGameState({ roundWords: newRoundWords })
+    setCorrectCount(prev => prev + 1)
+    getNextWord()
+    
+    // Add pop animation
+    const element = document.querySelector('.correct-btn')
+    element?.classList.add('animate-score-pop')
+    setTimeout(() => element?.classList.remove('animate-score-pop'), 300)
+  }
+
+  const handleSkip = () => {
+    const newRoundWords = [...gameState.roundWords, { word: currentWord, correct: false }]
+    updateGameState({ roundWords: newRoundWords })
+    setSkipCount(prev => prev + 1)
+    getNextWord()
+    
+    // Add shake animation
+    setShakeAnimation(true)
+    setTimeout(() => setShakeAnimation(false), 400)
+  }
+
+  const handleTimeUp = () => {
+    // Calculate round score
+    const roundScore = correctCount - skipCount
+    
+    // Update team score
+    const newTeams = teams.map((team, index) => 
+      index === gameState.currentTeam 
+        ? { ...team, score: team.score + roundScore }
+        : team
+    )
+    updateTeams(newTeams)
+
+    // Check for victory
+    const winningTeam = newTeams.find(team => team.score >= settings.winningScore)
+    if (winningTeam) {
+      updateGamePhase('victory')
+      return
+    }
+
+    // Move to results
+    updateGamePhase('results')
+  }
+
+  const handleEndEarly = () => {
+    setIsActive(false)
+    handleTimeUp()
+  }
+
+  const startRound = () => {
+    setIsActive(true)
+    setTimeLeft(settings.roundTime)
+    setCorrectCount(0)
+    setSkipCount(0)
+    updateGameState({ roundWords: [] })
+  }
+
+  const getTimerColor = () => {
+    if (timeLeft > 30) return 'text-success'
+    if (timeLeft > 10) return 'text-yellow-500'
+    return 'text-destructive'
+  }
+
+  if (!isActive && timeLeft === settings.roundTime) {
+    return (
+      <div className="min-h-screen bg-background p-6">
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="mb-8">
+            <div className={`inline-block px-6 py-3 rounded-full mb-4 ${currentTeam?.color || 'bg-primary'}`}>
+              <span className="text-white font-bold text-xl">{currentTeam?.name}</span>
+            </div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Get Ready!
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              Round {gameState.currentRound} • {settings.roundTime} seconds
+            </p>
+          </div>
+
+          <Card className="mb-8">
+            <CardContent className="p-8">
+              <h2 className="text-2xl font-semibold mb-4">How to Play</h2>
+              <div className="space-y-2 text-left">
+                <p>• Explain words to your teammates without saying the actual word</p>
+                <p>• No gestures, translations, or direct hints allowed</p>
+                <p>• +1 point for each correct guess</p>
+                <p>• -1 point for each skipped word</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Button onClick={startRound} size="lg" className="px-12">
+            Start Round
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div className={`px-4 py-2 rounded-full ${currentTeam?.color || 'bg-primary'}`}>
+            <span className="text-white font-semibold">{currentTeam?.name}</span>
+          </div>
+          
+          <div className={`text-timer ${getTimerColor()}`}>
+            {formatTime(timeLeft)}
+          </div>
+          
+          <Button variant="outline" onClick={handleEndEarly} size="sm">
+            <StopCircle size={16} className="mr-2" />
+            End Early
+          </Button>
+        </div>
+
+        {/* Current Word */}
+        <Card className="mb-8">
+          <CardContent className="p-12 text-center">
+            <div className={`text-game-word text-foreground ${shakeAnimation ? 'animate-shake' : ''}`}>
+              {currentWord}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Score Display */}
+        <div className="flex justify-center gap-8 mb-8">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-success">+{correctCount}</div>
+            <div className="text-sm text-muted-foreground">Correct</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-destructive">-{skipCount}</div>
+            <div className="text-sm text-muted-foreground">Skipped</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-foreground">
+              {correctCount - skipCount > 0 ? '+' : ''}{correctCount - skipCount}
+            </div>
+            <div className="text-sm text-muted-foreground">Total</div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-6">
+          <Button
+            onClick={handleCorrect}
+            size="lg"
+            className="correct-btn h-20 text-xl bg-success hover:bg-success/90 text-success-foreground"
+          >
+            <CheckCircle size={24} className="mr-3" />
+            Correct
+          </Button>
+          
+          <Button
+            onClick={handleSkip}
+            size="lg"
+            variant="destructive"
+            className="h-20 text-xl"
+          >
+            <XCircle size={24} className="mr-3" />
+            Skip
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}

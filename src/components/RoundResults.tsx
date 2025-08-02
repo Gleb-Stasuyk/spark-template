@@ -1,0 +1,166 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { CheckCircle, XCircle, ArrowRight } from '@phosphor-icons/react'
+import { Team, GameSettings, GameState } from '../App'
+
+interface RoundResultsProps {
+  teams: Team[]
+  settings: GameSettings
+  gameState: GameState
+  setTimeLeft: (time: number) => void
+  updateGamePhase: (phase: GameState['gamePhase']) => void
+  updateGameState: (updates: Partial<GameState>) => void
+}
+
+export default function RoundResults({
+  teams,
+  settings,
+  gameState,
+  setTimeLeft,
+  updateGamePhase,
+  updateGameState
+}: RoundResultsProps) {
+  const currentTeam = teams[gameState.currentTeam]
+  const correctWords = gameState.roundWords.filter(w => w.correct)
+  const skippedWords = gameState.roundWords.filter(w => !w.correct)
+  const roundScore = correctWords.length - skippedWords.length
+
+  const handleContinue = () => {
+    // Move to next team
+    const nextTeam = (gameState.currentTeam + 1) % teams.length
+    const nextRound = nextTeam === 0 ? gameState.currentRound + 1 : gameState.currentRound
+    
+    updateGameState({
+      currentTeam: nextTeam,
+      currentRound: nextRound,
+      roundWords: []
+    })
+    
+    // Reset timer
+    setTimeLeft(settings.roundTime)
+    
+    // Go to game phase
+    updateGamePhase('game')
+  }
+
+  return (
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-8">
+          <div className={`inline-block px-6 py-3 rounded-full mb-4 ${currentTeam?.color || 'bg-primary'}`}>
+            <span className="text-white font-bold text-xl">{currentTeam?.name}</span>
+          </div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Round Results
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Round {gameState.currentRound} Complete
+          </p>
+        </div>
+
+        {/* Round Score Summary */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-center">
+              <div className="text-3xl font-bold mb-2">
+                <span className="text-success">+{correctWords.length}</span>
+                <span className="text-muted-foreground mx-2">/</span>
+                <span className="text-destructive">-{skippedWords.length}</span>
+                <span className="text-muted-foreground mx-2">=</span>
+                <span className={roundScore >= 0 ? 'text-success' : 'text-destructive'}>
+                  {roundScore > 0 ? '+' : ''}{roundScore}
+                </span>
+              </div>
+              <div className="text-sm text-muted-foreground font-normal">
+                Points earned this round
+              </div>
+            </CardTitle>
+          </CardHeader>
+        </Card>
+
+        {/* Word Lists */}
+        <div className="space-y-4 mb-8">
+          {correctWords.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-success flex items-center gap-2">
+                  <CheckCircle size={20} />
+                  Correct Words ({correctWords.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-2">
+                  {correctWords.map((word, index) => (
+                    <div key={index} className="text-sm bg-success/10 text-success rounded px-3 py-2">
+                      {word.word}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {skippedWords.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-destructive flex items-center gap-2">
+                  <XCircle size={20} />
+                  Skipped Words ({skippedWords.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-2">
+                  {skippedWords.map((word, index) => (
+                    <div key={index} className="text-sm bg-destructive/10 text-destructive rounded px-3 py-2">
+                      {word.word}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Current Scoreboard */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Current Scores</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {teams.map((team, index) => (
+                <div key={team.id}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-4 h-4 rounded-full ${team.color}`} />
+                      <span className={`font-medium ${index === gameState.currentTeam ? 'text-primary' : 'text-foreground'}`}>
+                        {team.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {index === gameState.currentTeam && (
+                        <span className="text-xs text-muted-foreground">
+                          ({team.score - roundScore} + {roundScore})
+                        </span>
+                      )}
+                      <span className="font-bold text-lg">{team.score}</span>
+                    </div>
+                  </div>
+                  {index < teams.length - 1 && <Separator className="mt-3" />}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="text-center">
+          <Button onClick={handleContinue} size="lg" className="px-12">
+            <ArrowRight size={20} className="mr-2" />
+            Continue
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -1,1 +1,148 @@
-/* This is where custom CSS goes */
+@import 'tailwindcss';
+@import "tw-animate-css";
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+:root {
+  /* Background and surface colors */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.15 0 0);
+  --card: oklch(0.98 0 0);
+  --card-foreground: oklch(0.15 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0 0);
+
+  /* Action colors - triadic scheme */
+  --primary: oklch(0.65 0.25 240);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.95 0.02 240);
+  --secondary-foreground: oklch(0.15 0 0);
+  --accent: oklch(0.60 0.28 300);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.65 0.20 30);
+  --destructive-foreground: oklch(1 0 0);
+
+  /* Supporting colors */
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.45 0 0);
+  --border: oklch(0.90 0 0);
+  --input: oklch(0.90 0 0);
+  --ring: oklch(0.65 0.25 240);
+
+  /* Team colors */
+  --team-1: oklch(0.65 0.25 240); /* Electric Blue */
+  --team-2: oklch(0.65 0.20 30);  /* Coral Red */
+  --team-3: oklch(0.70 0.25 120); /* Lime Green */
+  --team-4: oklch(0.75 0.15 80);  /* Golden Yellow */
+
+  /* Success color */
+  --success: oklch(0.70 0.25 120);
+  --success-foreground: oklch(0.15 0 0);
+
+  /* Border radius */
+  --radius: 0.75rem;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Custom team colors */
+  --color-team-1: var(--team-1);
+  --color-team-2: var(--team-2);
+  --color-team-3: var(--team-3);
+  --color-team-4: var(--team-4);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+
+  /* Border radius system */
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.5);
+  --radius-xl: calc(var(--radius) * 2);
+  --radius-2xl: calc(var(--radius) * 3);
+  --radius-full: 9999px;
+}
+
+/* Typography hierarchy */
+.text-game-word {
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.1;
+}
+
+.text-team-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.text-timer {
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* Custom animations */
+@keyframes score-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+@keyframes celebration {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.05) rotate(1deg); }
+  75% { transform: scale(1.05) rotate(-1deg); }
+}
+
+.animate-score-pop {
+  animation: score-pop 0.3s ease-out;
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+.animate-celebration {
+  animation: celebration 0.6s ease-in-out infinite;
+}
+
+/* Utility classes */
+.team-color-1 { background-color: var(--team-1); color: white; }
+.team-color-2 { background-color: var(--team-2); color: white; }
+.team-color-3 { background-color: var(--team-3); color: white; }
+.team-color-4 { background-color: var(--team-4); color: white; }
