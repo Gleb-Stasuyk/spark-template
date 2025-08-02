@@ -6,6 +6,7 @@ import TeamSetup from './components/TeamSetup'
 import GameRound from './components/GameRound'
 import RoundResults from './components/RoundResults'
 import Victory from './components/Victory'
+import Rules from './components/Rules'
 
 export interface Team {
   id: number
@@ -23,7 +24,7 @@ export interface GameState {
   currentTeam: number
   currentRound: number
   roundWords: Array<{ word: string; correct: boolean | null }>
-  gamePhase: 'theme' | 'settings' | 'teams' | 'game' | 'results' | 'victory'
+  gamePhase: 'theme' | 'settings' | 'teams' | 'game' | 'results' | 'victory' | 'rules'
   selectedTheme: string
 }
 
@@ -96,6 +97,8 @@ function App() {
       return <ThemeSelection {...props} />
     case 'settings':
       return <Settings {...props} />
+    case 'rules':
+      return <Rules {...props} />
     case 'teams':
       return <TeamSetup {...props} />
     case 'game':

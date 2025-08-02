@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Settings, Play } from '@phosphor-icons/react'
+import { Settings, Play, Question } from '@phosphor-icons/react'
 import { Team, GameSettings, GameState } from '../App'
 
 interface ThemeSelectionProps {
@@ -35,6 +35,10 @@ export default function ThemeSelection({
 
   const handleSettings = () => {
     updateGamePhase('settings')
+  }
+
+  const handleRules = () => {
+    updateGamePhase('rules')
   }
 
   return (
@@ -74,14 +78,25 @@ export default function ThemeSelection({
         </div>
 
         <div className="flex justify-between items-center">
-          <Button
-            variant="outline"
-            onClick={handleSettings}
-            className="flex items-center gap-2"
-          >
-            <Settings size={20} />
-            Settings
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={handleSettings}
+              className="flex items-center gap-2"
+            >
+              <Settings size={20} />
+              Settings
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={handleRules}
+              className="flex items-center gap-2"
+            >
+              <Question size={20} />
+              Rules
+            </Button>
+          </div>
 
           <Button
             onClick={handleNext}
