@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import ThemeSelection from './components/ThemeSelection'
 import Settings from './components/Settings'
@@ -13,6 +13,7 @@ export interface Team {
   name: string
   score: number
   color: string
+  roundsPlayed: number
 }
 
 export interface GameSettings {
@@ -46,6 +47,17 @@ function App() {
   // Session state
   const [currentWord, setCurrentWord] = useState('')
   const [timeLeft, setTimeLeft] = useState(settings.roundTime)
+
+  // Migrate existing teams to include roundsPlayed field
+  useEffect(() => {
+    if (teams.length > 0 && teams.some(team => typeof team.roundsPlayed === 'undefined')) {
+      const migratedTeams = teams.map(team => ({
+        ...team,
+        roundsPlayed: team.roundsPlayed || 0
+      }))
+      setTeams(migratedTeams)
+    }
+  }, [teams, setTeams])
 
   const updateGamePhase = (phase: GameState['gamePhase']) => {
     setGameState(current => ({ ...current, gamePhase: phase }))

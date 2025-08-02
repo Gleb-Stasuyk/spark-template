@@ -60,7 +60,8 @@ export default function TeamSetup({
       id: i,
       name: teamNames[i] || `Team ${i + 1}`,
       score: 0,
-      color: TEAM_COLORS[i]
+      color: TEAM_COLORS[i],
+      roundsPlayed: 0
     }))
     
     updateTeams(newTeams)

@@ -80,7 +80,12 @@ export default function Victory({
                         <Trophy size={16} className="text-yellow-500" />
                       )}
                     </div>
-                    <span className="font-bold text-xl">{team.score}</span>
+                    <div className="text-right">
+                      <div className="font-bold text-xl">{team.score}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {team.roundsPlayed} rounds
+                      </div>
+                    </div>
                   </div>
                   {index < sortedTeams.length - 1 && <Separator className="mt-4" />}
                 </div>

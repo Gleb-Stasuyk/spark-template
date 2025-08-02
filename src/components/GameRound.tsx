@@ -113,24 +113,7 @@ export default function GameRound({
   }
 
   const handleTimeUp = () => {
-    // Calculate round score
-    const roundScore = correctCount - skipCount
-    
-    // Update team score
-    const newTeams = teams.map((team, index) => 
-      index === gameState.currentTeam 
-        ? { ...team, score: team.score + roundScore }
-        : team
-    )
-    updateTeams(newTeams)
-
-    // Check for victory
-    const winningTeam = newTeams.find(team => team.score >= settings.winningScore)
-    if (winningTeam) {
-      updateGamePhase('victory')
-      return
-    }
-
+    // Check for victory in the updated teams (will be done in RoundResults)
     // Move to results
     updateGamePhase('results')
   }

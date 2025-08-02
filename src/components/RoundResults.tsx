@@ -11,6 +11,7 @@ interface RoundResultsProps {
   setTimeLeft: (time: number) => void
   updateGamePhase: (phase: GameState['gamePhase']) => void
   updateGameState: (updates: Partial<GameState>) => void
+  updateTeams: (teams: Team[]) => void
 }
 
 export default function RoundResults({
@@ -19,7 +20,8 @@ export default function RoundResults({
   gameState,
   setTimeLeft,
   updateGamePhase,
-  updateGameState
+  updateGameState,
+  updateTeams
 }: RoundResultsProps) {
   const currentTeam = teams[gameState.currentTeam]
   const correctWords = gameState.roundWords.filter(w => w.correct)
@@ -27,6 +29,27 @@ export default function RoundResults({
   const roundScore = correctWords.length - skippedWords.length
 
   const handleContinue = () => {
+    // Update the current team's rounds played and score
+    const updatedTeams = teams.map((team, index) => {
+      if (index === gameState.currentTeam) {
+        return {
+          ...team,
+          score: team.score + roundScore,
+          roundsPlayed: team.roundsPlayed + 1
+        }
+      }
+      return team
+    })
+    
+    updateTeams(updatedTeams)
+    
+    // Check for victory
+    const winningTeam = updatedTeams.find(team => team.score >= settings.winningScore)
+    if (winningTeam) {
+      updateGamePhase('victory')
+      return
+    }
+    
     // Move to next team
     const nextTeam = (gameState.currentTeam + 1) % teams.length
     const nextRound = nextTeam === 0 ? gameState.currentRound + 1 : gameState.currentRound
@@ -55,7 +78,7 @@ export default function RoundResults({
             Round {gameState.currentRound} Results
           </h1>
           <p className="text-muted-foreground text-lg">
-            Total rounds played: {gameState.currentRound}
+            Game Round: {gameState.currentRound}
           </p>
         </div>
 
@@ -128,7 +151,7 @@ export default function RoundResults({
             <CardTitle className="flex items-center justify-between">
               <span>Current Scores</span>
               <span className="text-sm font-normal text-muted-foreground">
-                Rounds played: {gameState.currentRound}
+                Game Round: {gameState.currentRound}
               </span>
             </CardTitle>
           </CardHeader>
@@ -148,13 +171,17 @@ export default function RoundResults({
                         <div className="flex items-center gap-2">
                           {index === gameState.currentTeam && (
                             <span className="text-xs text-muted-foreground">
-                              ({team.score - roundScore} + {roundScore})
+                              ({team.score} + {roundScore})
                             </span>
                           )}
-                          <span className="font-bold text-lg">{team.score}</span>
+                          <span className="font-bold text-lg">
+                            {index === gameState.currentTeam ? team.score + roundScore : team.score}
+                          </span>
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {Math.ceil((index + 1 + (gameState.currentRound - 1) * teams.length) / teams.length)} rounds
+                          {index === gameState.currentTeam 
+                            ? `${team.roundsPlayed + 1} rounds` 
+                            : `${team.roundsPlayed} rounds`}
                         </div>
                       </div>
                     </div>
