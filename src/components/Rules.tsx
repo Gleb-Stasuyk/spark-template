@@ -116,8 +116,38 @@ export default function Rules({
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                The first team to reach the winning score (default: 50 points) wins the game!
+                The first team to reach the winning score (default: 50 points) wins the game, but only after all teams have played an equal number of rounds!
               </p>
+            </CardContent>
+          </Card>
+
+          {/* Victory Conditions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Trophy size={24} className="text-yellow-500" />
+                Victory Conditions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <div className="font-semibold text-primary mb-2">How to Win:</div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-start gap-2">
+                      <span className="font-semibold text-primary">1.</span>
+                      <span>Be the first team to reach the winning score (default: 50 points)</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="font-semibold text-primary">2.</span>
+                      <span><strong>AND</strong> ensure all teams have played an equal number of rounds</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  This ensures fair play - if a team reaches the winning score but other teams haven't had their turn in that round, the game continues until everyone has played equally.
+                </p>
+              </div>
             </CardContent>
           </Card>
 

@@ -43,9 +43,13 @@ export default function RoundResults({
     
     updateTeams(updatedTeams)
     
-    // Check for victory
-    const winningTeam = updatedTeams.find(team => team.score >= settings.winningScore)
-    if (winningTeam) {
+    // Check if all teams have played equal number of rounds
+    const currentTeamRounds = updatedTeams[gameState.currentTeam].roundsPlayed
+    const allTeamsEqualRounds = updatedTeams.every(team => team.roundsPlayed === currentTeamRounds)
+    
+    // Check for victory - only if a team reached winning score AND all teams have equal rounds
+    const teamAtWinningScore = updatedTeams.find(team => team.score >= settings.winningScore)
+    if (teamAtWinningScore && allTeamsEqualRounds) {
       updateGamePhase('victory')
       return
     }

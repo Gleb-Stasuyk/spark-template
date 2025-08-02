@@ -61,7 +61,7 @@ export default function Settings({
             <CardContent>
               <div className="space-y-4">
                 <p className="text-muted-foreground text-sm">
-                  The first team to reach this score wins the game
+                  The first team to reach this score wins (when all teams have played equal rounds)
                 </p>
                 <Slider
                   value={[settings.winningScore]}
