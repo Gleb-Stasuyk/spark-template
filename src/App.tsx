@@ -192,10 +192,18 @@ function App() {
         </>
       )
     case 'custom-collections':
+      if (!currentUser) {
+        return (
+          <>
+            <Auth onAuthSuccess={handleAuthSuccess} />
+            <Toaster />
+          </>
+        )
+      }
       return (
         <>
           <CustomCollections 
-            user={currentUser!} 
+            user={currentUser} 
             onBack={() => updateGamePhase('theme')} 
           />
           <Toaster />

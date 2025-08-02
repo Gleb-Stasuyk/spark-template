@@ -40,12 +40,33 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
   const [wordsText, setWordsText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
+  // Guard against null user
+  if (!user || !user.id) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 p-4 flex items-center justify-center">
+        <Card className="text-center p-8">
+          <CardContent>
+            <p className="text-muted-foreground mb-4">Please log in to access custom collections</p>
+            <Button onClick={onBack}>Back to Game</Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   // Load user's custom collections
   useEffect(() => {
-    loadCollections()
-  }, [user.id])
+    if (user?.id) {
+      loadCollections()
+    }
+  }, [user?.id])
 
   const loadCollections = async () => {
+    if (!user?.id) {
+      console.warn('Cannot load collections: user or user.id is null')
+      return
+    }
+
     try {
       console.log('Loading collections for user:', user.id)
       const allCollections = await spark.kv.get<CustomCollection[]>('alias-custom-collections') || []
@@ -112,6 +133,11 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
 
   const handleSave = async () => {
     if (!validateForm()) return
+    
+    if (!user?.id) {
+      toast.error('User not authenticated')
+      return
+    }
 
     setIsLoading(true)
 
