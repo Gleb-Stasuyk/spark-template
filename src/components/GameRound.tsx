@@ -48,9 +48,14 @@ export default function GameRound({
 
   // Generate initial word and auto-start round
   useEffect(() => {
-    if (!currentWord && gameState.selectedTheme) {
-      setCurrentWord(getRandomWord(gameState.selectedTheme))
+    const initializeWord = async () => {
+      if (!currentWord && gameState.selectedTheme) {
+        const word = await getRandomWord(gameState.selectedTheme)
+        setCurrentWord(word)
+      }
     }
+    
+    initializeWord()
     
     // Auto-start the round if it's not active and timer is at full time
     if (!isActive && timeLeft === settings.roundTime) {
@@ -83,9 +88,10 @@ export default function GameRound({
     }
   }, [isActive, timeLeft, setTimeLeft])
 
-  const getNextWord = useCallback(() => {
+  const getNextWord = useCallback(async () => {
     if (gameState.selectedTheme) {
-      setCurrentWord(getRandomWord(gameState.selectedTheme))
+      const word = await getRandomWord(gameState.selectedTheme)
+      setCurrentWord(word)
     }
   }, [gameState.selectedTheme, setCurrentWord])
 

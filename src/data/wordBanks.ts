@@ -107,7 +107,29 @@ export function getRandomWords(themeId: string, count: number = 100): string[] {
 }
 
 // Function to get a single random word
-export function getRandomWord(themeId: string, usedWords: string[] = []): string {
+export async function getRandomWord(themeId: string, usedWords: string[] = []): Promise<string> {
+  // Handle custom collections
+  if (themeId.startsWith('custom-')) {
+    const collectionId = themeId.replace('custom-', '')
+    try {
+      const allCollections = await spark.kv.get<any[]>('alias-custom-collections') || []
+      const collection = allCollections.find(c => c.id === collectionId)
+      
+      if (collection && collection.words) {
+        const availableWords = collection.words.filter((word: string) => !usedWords.includes(word))
+        if (availableWords.length === 0) {
+          // If all words used, reset the pool
+          return collection.words[Math.floor(Math.random() * collection.words.length)]
+        }
+        return availableWords[Math.floor(Math.random() * availableWords.length)]
+      }
+    } catch (error) {
+      console.error('Error loading custom collection:', error)
+      return 'Error'
+    }
+  }
+  
+  // Handle predefined themes
   const bank = wordBanks[themeId]
   if (!bank) return 'Error'
   

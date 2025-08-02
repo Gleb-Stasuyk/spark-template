@@ -9,7 +9,7 @@ import RoundResults from './components/RoundResults'
 import Victory from './components/Victory'
 import Rules from './components/Rules'
 import Auth from './components/Auth'
-import AuthTest from './components/AuthTest'
+import CustomCollections from './components/CustomCollections'
 
 export interface Team {
   id: number
@@ -28,7 +28,7 @@ export interface GameState {
   currentTeam: number
   currentRound: number
   roundWords: Array<{ word: string; correct: boolean | null }>
-  gamePhase: 'auth' | 'theme' | 'settings' | 'teams' | 'game' | 'results' | 'victory' | 'rules' | 'auth-test'
+  gamePhase: 'auth' | 'theme' | 'settings' | 'teams' | 'game' | 'results' | 'victory' | 'rules' | 'custom-collections'
   selectedTheme: string
 }
 
@@ -191,10 +191,13 @@ function App() {
           <Toaster />
         </>
       )
-    case 'auth-test':
+    case 'custom-collections':
       return (
         <>
-          <AuthTest {...props} />
+          <CustomCollections 
+            user={currentUser!} 
+            onBack={() => updateGamePhase('theme')} 
+          />
           <Toaster />
         </>
       )

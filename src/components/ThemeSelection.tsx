@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Settings, Play, Question, User, Lock } from '@phosphor-icons/react'
+import { Badge } from '@/components/ui/badge'
+import { Settings, Play, Question, User, Collection, ArrowLeft } from '@phosphor-icons/react'
 import { Team, GameSettings, GameState, AuthUser } from '../App'
 import { wordBanks } from '../data/wordBanks'
 
@@ -12,6 +14,15 @@ interface ThemeSelectionProps {
   updateGamePhase: (phase: GameState['gamePhase']) => void
   updateGameState: (updates: Partial<GameState>) => void
   handleLogout?: () => void
+}
+
+interface CustomCollection {
+  id: string
+  name: string
+  description: string
+  words: string[]
+  userId: string
+  createdAt: string
 }
 
 const themes = [
@@ -44,12 +55,6 @@ const themes = [
     name: 'Kids', 
     emoji: '🧸', 
     description: 'Family-friendly words'
-  },
-  { 
-    id: 'custom', 
-    name: 'Custom', 
-    emoji: '✨', 
-    description: 'Your own word list'
   }
 ]
 
@@ -69,12 +74,33 @@ export default function ThemeSelection({
   updateGameState,
   handleLogout
 }: ThemeSelectionProps) {
-  const handleThemeSelect = (themeId: string) => {
-    if (themeId === 'custom' && !currentUser) {
-      updateGamePhase('auth')
-      return
+  const [showCustomCollections, setShowCustomCollections] = useState(false)
+  const [customCollections, setCustomCollections] = useState<CustomCollection[]>([])
+
+  // Load custom collections when component mounts or user changes
+  useEffect(() => {
+    if (currentUser) {
+      loadCustomCollections()
     }
+  }, [currentUser])
+
+  const loadCustomCollections = async () => {
+    if (!currentUser) return
+    
+    try {
+      const allCollections = await spark.kv.get<CustomCollection[]>('alias-custom-collections') || []
+      const userCollections = allCollections.filter(collection => collection.userId === currentUser.id)
+      setCustomCollections(userCollections)
+    } catch (error) {
+      console.error('Failed to load custom collections:', error)
+    }
+  }
+
+  const handleThemeSelect = (themeId: string) => {
     updateGameState({ selectedTheme: themeId })
+    if (showCustomCollections) {
+      setShowCustomCollections(false)
+    }
   }
 
   const handleNext = () => {
@@ -87,6 +113,126 @@ export default function ThemeSelection({
 
   const handleRules = () => {
     updateGamePhase('rules')
+  }
+
+  const handleCustomCollections = () => {
+    if (currentUser) {
+      setShowCustomCollections(true)
+    } else {
+      updateGamePhase('auth')
+    }
+  }
+
+  const handleManageCollections = () => {
+    updateGamePhase('custom-collections')
+  }
+
+  // If showing custom collections, render the custom collections view
+  if (showCustomCollections) {
+    return (
+      <div className="min-h-screen bg-background p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-4 mb-8">
+            <Button
+              variant="outline"
+              onClick={() => setShowCustomCollections(false)}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft size={16} />
+              Back to Themes
+            </Button>
+            <div className="flex-1 text-center">
+              <h1 className="text-4xl font-bold text-foreground mb-2">
+                Choose Custom Collection
+              </h1>
+              <p className="text-muted-foreground text-lg">
+                Select from your custom word collections
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={handleManageCollections}
+              className="flex items-center gap-2"
+            >
+              <Collection size={16} />
+              Manage Collections
+            </Button>
+          </div>
+
+          {customCollections.length === 0 ? (
+            <Card className="text-center py-12">
+              <CardContent>
+                <Collection size={64} className="mx-auto mb-4 text-muted-foreground" />
+                <h2 className="text-2xl font-bold mb-2">No Custom Collections</h2>
+                <p className="text-muted-foreground mb-4">
+                  Create your first custom word collection to get started
+                </p>
+                <Button onClick={handleManageCollections} className="flex items-center gap-2 mx-auto">
+                  <Collection size={16} />
+                  Create Collection
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {customCollections.map((collection) => (
+                <Card
+                  key={collection.id}
+                  className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
+                    gameState.selectedTheme === `custom-${collection.id}`
+                      ? 'ring-2 ring-primary shadow-lg scale-105'
+                      : 'hover:shadow-md'
+                  }`}
+                  onClick={() => handleThemeSelect(`custom-${collection.id}`)}
+                >
+                  <CardContent className="p-6 text-center">
+                    <div className="text-4xl mb-3">✨</div>
+                    <h3 className="text-xl font-semibold text-foreground mb-2">
+                      {collection.name}
+                    </h3>
+                    {collection.description && (
+                      <p className="text-muted-foreground text-sm mb-3">
+                        {collection.description}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <Badge variant="secondary" className="text-xs">
+                        {collection.words.length} words
+                      </Badge>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      <p className="font-medium mb-1">Sample words:</p>
+                      <div className="flex flex-wrap gap-1 justify-center">
+                        {collection.words.slice(0, 4).map((word, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-muted rounded-md text-xs"
+                          >
+                            {word}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          <div className="flex justify-end">
+            <Button
+              onClick={handleNext}
+              disabled={!gameState.selectedTheme || !gameState.selectedTheme.startsWith('custom-')}
+              className="flex items-center gap-2 px-8"
+              size="lg"
+            >
+              <Play size={20} />
+              Next
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -121,54 +267,40 @@ export default function ThemeSelection({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {themes.map((theme) => {
-            const isCustom = theme.id === 'custom'
-            const requiresAuth = isCustom && !currentUser
-            
-            return (
-              <Card
-                key={theme.id}
-                className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
-                  gameState.selectedTheme === theme.id
-                    ? 'ring-2 ring-primary shadow-lg scale-105'
-                    : 'hover:shadow-md'
-                } ${requiresAuth ? 'opacity-75' : ''}`}
-                onClick={() => handleThemeSelect(theme.id)}
-              >
-                <CardContent className="p-6 text-center">
-                  <div className="relative">
-                    <div className="text-4xl mb-3">{theme.emoji}</div>
-                    {requiresAuth && (
-                      <div className="absolute -top-2 -right-2 bg-muted-foreground rounded-full p-1">
-                        <Lock size={12} className="text-white" />
-                      </div>
-                    )}
+          {themes.map((theme) => (
+            <Card
+              key={theme.id}
+              className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
+                gameState.selectedTheme === theme.id
+                  ? 'ring-2 ring-primary shadow-lg scale-105'
+                  : 'hover:shadow-md'
+              }`}
+              onClick={() => handleThemeSelect(theme.id)}
+            >
+              <CardContent className="p-6 text-center">
+                <div className="text-4xl mb-3">{theme.emoji}</div>
+                <h3 className="text-xl font-semibold text-foreground mb-2">
+                  {theme.name}
+                </h3>
+                <p className="text-muted-foreground text-sm mb-3">
+                  {theme.description}
+                </p>
+                <div className="text-xs text-muted-foreground">
+                  <p className="font-medium mb-1">Sample words:</p>
+                  <div className="flex flex-wrap gap-1 justify-center">
+                    {getSampleWords(theme.id).map((word, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 bg-muted rounded-md text-xs"
+                      >
+                        {word}
+                      </span>
+                    ))}
                   </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2">
-                    {theme.name}
-                  </h3>
-                  <p className="text-muted-foreground text-sm mb-3">
-                    {requiresAuth ? 'Login required for custom collections' : theme.description}
-                  </p>
-                  {!requiresAuth && (
-                    <div className="text-xs text-muted-foreground">
-                      <p className="font-medium mb-1">Sample words:</p>
-                      <div className="flex flex-wrap gap-1 justify-center">
-                        {getSampleWords(theme.id).map((word, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-muted rounded-md text-xs"
-                          >
-                            {word}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )
-          })}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         <div className="flex justify-between items-center">
@@ -191,7 +323,16 @@ export default function ThemeSelection({
               Rules
             </Button>
 
-            {!currentUser && (
+            {currentUser ? (
+              <Button
+                variant="outline"
+                onClick={handleCustomCollections}
+                className="flex items-center gap-2"
+              >
+                <Collection size={20} />
+                Custom Collections
+              </Button>
+            ) : (
               <Button
                 variant="outline"
                 onClick={() => updateGamePhase('auth')}
@@ -199,16 +340,6 @@ export default function ThemeSelection({
               >
                 <User size={20} />
                 Login / Register
-              </Button>
-            )}
-            
-            {process.env.NODE_ENV === 'development' && (
-              <Button
-                variant="outline"
-                onClick={() => updateGamePhase('auth-test')}
-                className="flex items-center gap-2 text-xs"
-              >
-                Test Auth
               </Button>
             )}
           </div>
