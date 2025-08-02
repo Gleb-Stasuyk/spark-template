@@ -125,7 +125,12 @@ export default function RoundResults({
         {/* Current Scoreboard */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Current Scores</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>Current Scores</span>
+              <span className="text-sm font-normal text-muted-foreground">
+                Rounds played: {gameState.currentRound}
+              </span>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -138,13 +143,20 @@ export default function RoundResults({
                         {team.name}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {index === gameState.currentTeam && (
-                        <span className="text-xs text-muted-foreground">
-                          ({team.score - roundScore} + {roundScore})
-                        </span>
-                      )}
-                      <span className="font-bold text-lg">{team.score}</span>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <div className="flex items-center gap-2">
+                          {index === gameState.currentTeam && (
+                            <span className="text-xs text-muted-foreground">
+                              ({team.score - roundScore} + {roundScore})
+                            </span>
+                          )}
+                          <span className="font-bold text-lg">{team.score}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {Math.ceil((index + 1 + (gameState.currentRound - 1) * teams.length) / teams.length)} rounds
+                        </div>
+                      </div>
                     </div>
                   </div>
                   {index < teams.length - 1 && <Separator className="mt-3" />}
