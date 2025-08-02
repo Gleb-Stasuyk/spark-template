@@ -3,7 +3,14 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, XCircle, SkipForward, StopCircle } from '@phosphor-icons/react'
 import { Team, GameSettings, GameState } from '../App'
-import { getRandomWord, formatTime } from '../lib/gameData'
+import { getRandomWord } from '../data/wordBanks'
+
+// Utility function to format time
+const formatTime = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return `${mins}:${secs.toString().padStart(2, '0')}`
+}
 
 interface GameRoundProps {
   teams: Team[]

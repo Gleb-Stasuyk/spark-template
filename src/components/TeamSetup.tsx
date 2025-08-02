@@ -4,7 +4,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ArrowLeft, Play } from '@phosphor-icons/react'
 import { Team, GameSettings, GameState } from '../App'
-import { TEAM_COLORS } from '../lib/gameData'
+
+const TEAM_COLORS = [
+  'team-color-1', // Electric Blue
+  'team-color-2', // Coral Red  
+  'team-color-3', // Lime Green
+  'team-color-4'  // Golden Yellow
+]
 
 interface TeamSetupProps {
   teams: Team[]

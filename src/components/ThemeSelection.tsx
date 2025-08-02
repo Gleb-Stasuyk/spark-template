@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Settings, Play, Question } from '@phosphor-icons/react'
 import { Team, GameSettings, GameState } from '../App'
+import { wordBanks } from '../data/wordBanks'
 
 interface ThemeSelectionProps {
   teams: Team[]
@@ -12,13 +13,52 @@ interface ThemeSelectionProps {
 }
 
 const themes = [
-  { id: 'classic', name: 'Classic', emoji: '🎯', description: 'General knowledge words' },
-  { id: 'movies', name: 'Movies', emoji: '🎬', description: 'Cinema and film terms' },
-  { id: 'sports', name: 'Sports', emoji: '⚽', description: 'Athletic and sports terms' },
-  { id: 'food', name: 'Food', emoji: '🍕', description: 'Cooking and cuisine' },
-  { id: 'kids', name: 'Kids', emoji: '🧸', description: 'Family-friendly words' },
-  { id: 'custom', name: 'Custom', emoji: '✨', description: 'Your own word list' }
+  { 
+    id: 'classic', 
+    name: 'Classic', 
+    emoji: '🎯', 
+    description: 'General knowledge words'
+  },
+  { 
+    id: 'movies', 
+    name: 'Movies', 
+    emoji: '🎬', 
+    description: 'Cinema and film terms'
+  },
+  { 
+    id: 'sports', 
+    name: 'Sports', 
+    emoji: '⚽', 
+    description: 'Athletic and sports terms'
+  },
+  { 
+    id: 'food', 
+    name: 'Food', 
+    emoji: '🍕', 
+    description: 'Cooking and cuisine'
+  },
+  { 
+    id: 'kids', 
+    name: 'Kids', 
+    emoji: '🧸', 
+    description: 'Family-friendly words'
+  },
+  { 
+    id: 'custom', 
+    name: 'Custom', 
+    emoji: '✨', 
+    description: 'Your own word list'
+  }
 ]
+
+// Helper function to get sample words from word banks
+const getSampleWords = (themeId: string): string[] => {
+  const bank = wordBanks[themeId]
+  if (!bank) return ['Sample', 'Words', 'Here', 'Soon']
+  
+  // Get first 4 words from the bank
+  return bank.words.slice(0, 4)
+}
 
 export default function ThemeSelection({ 
   gameState, 
@@ -69,9 +109,22 @@ export default function ThemeSelection({
                 <h3 className="text-xl font-semibold text-foreground mb-2">
                   {theme.name}
                 </h3>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-muted-foreground text-sm mb-3">
                   {theme.description}
                 </p>
+                <div className="text-xs text-muted-foreground">
+                  <p className="font-medium mb-1">Sample words:</p>
+                  <div className="flex flex-wrap gap-1 justify-center">
+                    {getSampleWords(theme.id).map((word, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 bg-muted rounded-md text-xs"
+                      >
+                        {word}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))}
