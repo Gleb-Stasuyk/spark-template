@@ -1,4 +1,6 @@
 // Word banks for different game themes
+import { getCustomCollections } from '../utils/kvUtils'
+
 export interface WordBank {
   id: string
   name: string
@@ -112,26 +114,30 @@ export async function getRandomWord(themeId: string, usedWords: string[] = []): 
   if (themeId.startsWith('custom-')) {
     const collectionId = themeId.replace('custom-', '')
     try {
-      const allCollections = await spark.kv.get<any[]>('alias-custom-collections') || []
+      const allCollections = await getCustomCollections()
       const collection = allCollections.find(c => c.id === collectionId)
       
-      if (collection && collection.words) {
-        const availableWords = collection.words.filter((word: string) => !usedWords.includes(word))
+      if (collection && collection.words.length > 0) {
+        const availableWords = collection.words.filter(word => !usedWords.includes(word))
+        
         if (availableWords.length === 0) {
           // If all words used, reset the pool
           return collection.words[Math.floor(Math.random() * collection.words.length)]
         }
         return availableWords[Math.floor(Math.random() * availableWords.length)]
+      } else {
+        console.error('Collection not found or empty:', { collectionId, collection })
+        return 'Error: Collection not found'
       }
     } catch (error) {
       console.error('Error loading custom collection:', error)
-      return 'Error'
+      return 'Error: Failed to load collection'
     }
   }
   
   // Handle predefined themes
   const bank = wordBanks[themeId]
-  if (!bank) return 'Error'
+  if (!bank) return 'Error: Theme not found'
   
   const availableWords = bank.words.filter(word => !usedWords.includes(word))
   if (availableWords.length === 0) {

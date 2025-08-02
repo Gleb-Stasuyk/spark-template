@@ -8,15 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from '@/components/ui/badge'
 import { Plus, Trash, Edit, ArrowLeft, Collection } from '@phosphor-icons/react'
 import { toast } from 'sonner'
-
-interface CustomCollection {
-  id: string
-  name: string
-  description: string
-  words: string[]
-  userId: string
-  createdAt: string
-}
+import { CustomCollection, getCustomCollections, saveCustomCollections, getUserCollections } from '../utils/kvUtils'
 
 interface User {
   id: string
@@ -54,6 +46,22 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
     )
   }
 
+  // Utility function to clear corrupted data
+  const clearCorruptedData = async () => {
+    try {
+      const success = await saveCustomCollections([])
+      if (success) {
+        toast.success('Cleared all data. You can now create new collections.')
+        setCollections([])
+      } else {
+        toast.error('Failed to clear data')
+      }
+    } catch (error) {
+      console.error('Failed to clear data:', error)
+      toast.error('Failed to clear data')
+    }
+  }
+
   // Load user's custom collections
   useEffect(() => {
     if (user?.id) {
@@ -69,16 +77,13 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
 
     try {
       console.log('Loading collections for user:', user.id)
-      const allCollections = await spark.kv.get<CustomCollection[]>('alias-custom-collections') || []
-      console.log('All collections from storage:', allCollections)
-      
-      const userCollections = allCollections.filter(collection => collection.userId === user.id)
+      const userCollections = await getUserCollections(user.id)
       console.log('User collections:', userCollections)
-      
       setCollections(userCollections)
     } catch (error) {
       console.error('Error loading collections:', error)
       toast.error('Failed to load collections')
+      setCollections([])
     }
   }
 
@@ -149,16 +154,19 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
 
       console.log('Saving collection:', { name, description, words, userId: user.id })
 
-      const allCollections = await spark.kv.get<CustomCollection[]>('alias-custom-collections') || []
+      // Get existing collections using utility function
+      const allCollections = await getCustomCollections()
       console.log('Existing collections:', allCollections)
 
       if (editingCollection) {
         // Update existing collection
         const updatedCollection: CustomCollection = {
-          ...editingCollection,
+          id: editingCollection.id,
           name: name.trim(),
           description: description.trim(),
-          words
+          words,
+          userId: user.id,
+          createdAt: editingCollection.createdAt
         }
 
         const updatedCollections = allCollections.map(collection =>
@@ -166,12 +174,17 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
         )
 
         console.log('Updating collections:', updatedCollections)
-        await spark.kv.set('alias-custom-collections', updatedCollections)
-        toast.success('Collection updated successfully!')
+        const success = await saveCustomCollections(updatedCollections)
+        if (success) {
+          toast.success('Collection updated successfully!')
+        } else {
+          toast.error('Failed to update collection')
+          return
+        }
       } else {
-        // Create new collection
+        // Create new collection with a unique ID
         const newCollection: CustomCollection = {
-          id: Date.now().toString(),
+          id: `collection_${user.id}_${Date.now()}`,
           name: name.trim(),
           description: description.trim(),
           words,
@@ -183,15 +196,21 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
         console.log('Creating new collection:', newCollection)
         console.log('All collections after adding:', updatedCollections)
         
-        await spark.kv.set('alias-custom-collections', updatedCollections)
-        toast.success('Collection created successfully!')
+        const success = await saveCustomCollections(updatedCollections)
+        if (success) {
+          toast.success('Collection created successfully!')
+        } else {
+          toast.error('Failed to create collection')
+          return
+        }
       }
 
       closeDialog()
       await loadCollections()
     } catch (error) {
       console.error('Error saving collection:', error)
-      toast.error(`Failed to save collection: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      toast.error(`Failed to save collection: ${errorMessage}`)
     } finally {
       setIsLoading(false)
     }
@@ -201,13 +220,18 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
     if (!confirm('Are you sure you want to delete this collection?')) return
 
     try {
-      const allCollections = await spark.kv.get<CustomCollection[]>('alias-custom-collections') || []
+      const allCollections = await getCustomCollections()
       const updatedCollections = allCollections.filter(collection => collection.id !== collectionId)
       
-      await spark.kv.set('alias-custom-collections', updatedCollections)
-      loadCollections()
-      toast.success('Collection deleted successfully!')
+      const success = await saveCustomCollections(updatedCollections)
+      if (success) {
+        await loadCollections()
+        toast.success('Collection deleted successfully!')
+      } else {
+        toast.error('Failed to delete collection')
+      }
     } catch (error) {
+      console.error('Error deleting collection:', error)
       toast.error('Failed to delete collection')
     }
   }
@@ -225,25 +249,29 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
             <h1 className="text-3xl font-bold">My Custom Collections</h1>
             <p className="text-muted-foreground">Create and manage your personal word collections</p>
           </div>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={openCreateDialog} className="flex items-center gap-2">
-                <Plus size={16} />
-                New Collection
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingCollection ? 'Edit Collection' : 'Create New Collection'}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingCollection 
-                    ? 'Update your custom word collection'
-                    : 'Create a custom word collection for your games'
-                  }
-                </DialogDescription>
-              </DialogHeader>
+          <div className="flex gap-2">
+            <Button variant="destructive" size="sm" onClick={clearCorruptedData}>
+              Clear All Data
+            </Button>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={openCreateDialog} className="flex items-center gap-2">
+                  <Plus size={16} />
+                  New Collection
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingCollection ? 'Edit Collection' : 'Create New Collection'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingCollection 
+                      ? 'Update your custom word collection'
+                      : 'Create a custom word collection for your games'
+                    }
+                  </DialogDescription>
+                </DialogHeader>
 
               <div className="space-y-4">
                 <div className="space-y-2">

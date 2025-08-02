@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Settings, Play, Question, User, Collection, ArrowLeft } from '@phosphor-icons/react'
 import { Team, GameSettings, GameState, AuthUser } from '../App'
 import { wordBanks } from '../data/wordBanks'
+import { CustomCollection, getUserCollections } from '../utils/kvUtils'
 
 interface ThemeSelectionProps {
   teams: Team[]
@@ -14,15 +15,6 @@ interface ThemeSelectionProps {
   updateGamePhase: (phase: GameState['gamePhase']) => void
   updateGameState: (updates: Partial<GameState>) => void
   handleLogout?: () => void
-}
-
-interface CustomCollection {
-  id: string
-  name: string
-  description: string
-  words: string[]
-  userId: string
-  createdAt: string
 }
 
 const themes = [
@@ -88,11 +80,11 @@ export default function ThemeSelection({
     if (!currentUser) return
     
     try {
-      const allCollections = await spark.kv.get<CustomCollection[]>('alias-custom-collections') || []
-      const userCollections = allCollections.filter(collection => collection.userId === currentUser.id)
+      const userCollections = await getUserCollections(currentUser.id)
       setCustomCollections(userCollections)
     } catch (error) {
       console.error('Failed to load custom collections:', error)
+      setCustomCollections([])
     }
   }
 
