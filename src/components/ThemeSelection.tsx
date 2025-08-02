@@ -134,11 +134,11 @@ export default function ThemeSelection({
   }
 
   const handleCustomCollections = () => {
-    if (currentUser) {
-      setShowCustomCollections(true)
-    } else {
+    if (!currentUser) {
       updateGamePhase('auth')
+      return
     }
+    setShowCustomCollections(true)
   }
 
   const handleManageCollections = () => {
@@ -379,22 +379,31 @@ export default function ThemeSelection({
           
           {/* Custom Collections Card */}
           <Card
-            className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg border-2 border-dashed ${
-              gameState.selectedTheme?.startsWith('custom-')
-                ? 'ring-2 ring-primary shadow-lg scale-105 border-primary'
-                : 'border-border hover:border-primary/50'
+            className={`border-2 border-dashed transition-all duration-200 cursor-pointer ${
+              currentUser 
+                ? `hover:scale-105 hover:shadow-lg ${
+                    gameState.selectedTheme?.startsWith('custom-')
+                      ? 'ring-2 ring-primary shadow-lg scale-105 border-primary'
+                      : 'border-border hover:border-primary/50'
+                  }`
+                : 'opacity-60 border-border hover:opacity-80'
             }`}
-            onClick={handleCustomCollections}
+            onClick={() => currentUser ? handleCustomCollections() : updateGamePhase('auth')}
           >
             <CardContent className="p-6 text-center">
-              <div className="text-4xl mb-3">✨</div>
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <span className="text-4xl">✨</span>
+                {!currentUser && (
+                  <Lock size={20} className="text-muted-foreground" />
+                )}
+              </div>
               <h3 className="text-xl font-semibold text-foreground mb-2">
                 Custom Collections
               </h3>
               <p className="text-muted-foreground text-sm mb-3">
                 {currentUser 
                   ? `${customCollections.length} personal collections`
-                  : 'Login to create custom words'
+                  : 'Login required for custom collections'
                 }
               </p>
               <div className="text-xs text-muted-foreground">
@@ -426,8 +435,8 @@ export default function ThemeSelection({
                   </>
                 ) : (
                   <div className="flex items-center justify-center gap-1">
-                    <User size={12} />
-                    <span>Login required</span>
+                    <Lock size={12} />
+                    <span>Restricted Content</span>
                   </div>
                 )}
               </div>
