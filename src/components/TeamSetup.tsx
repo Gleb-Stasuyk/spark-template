@@ -3,7 +3,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ArrowLeft, Play } from '@phosphor-icons/react'
-import { Team, GameSettings, GameState } from '../App'
+import { Team, GameSettings, GameState, AuthUser } from '../App'
+import { isAdultTheme } from '../data/wordBanks'
 
 const TEAM_COLORS = [
   'team-color-1', // Electric Blue
@@ -16,6 +17,7 @@ interface TeamSetupProps {
   teams: Team[]
   settings: GameSettings
   gameState: GameState
+  currentUser: AuthUser | null
   updateGamePhase: (phase: GameState['gamePhase']) => void
   updateTeams: (teams: Team[]) => void
   updateGameState: (updates: Partial<GameState>) => void
@@ -24,10 +26,17 @@ interface TeamSetupProps {
 export default function TeamSetup({ 
   teams,
   gameState,
+  currentUser,
   updateGamePhase, 
   updateTeams,
   updateGameState
 }: TeamSetupProps) {
+  // Security check: prevent unauthorized access to adult themes
+  if (isAdultTheme(gameState.selectedTheme) && !currentUser) {
+    updateGamePhase('auth')
+    return null
+  }
+
   const [selectedTeamCount, setSelectedTeamCount] = useState(teams.length || 2)
   const [teamNames, setTeamNames] = useState<string[]>(
     teams.length > 0 

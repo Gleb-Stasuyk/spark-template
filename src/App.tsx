@@ -10,6 +10,7 @@ import Victory from './components/Victory'
 import Rules from './components/Rules'
 import Auth from './components/Auth'
 import CustomCollections from './components/CustomCollections'
+import { isAdultTheme } from './data/wordBanks'
 
 export interface Team {
   id: number
@@ -112,8 +113,8 @@ function App() {
     setGameState(current => ({ ...current, gamePhase: 'theme' }))
   }
 
-  // Show auth screen if no user is logged in and user tries to access custom collections
-  if (!currentUser && gameState.selectedTheme === 'custom') {
+  // Show auth screen if no user is logged in and user tries to access custom collections or adult themes
+  if (!currentUser && (gameState.selectedTheme === 'custom' || isAdultTheme(gameState.selectedTheme))) {
     return <Auth onAuthSuccess={handleAuthSuccess} />
   }
 

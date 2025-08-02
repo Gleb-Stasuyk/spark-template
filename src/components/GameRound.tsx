@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, XCircle, SkipForward, StopCircle, House } from '@phosphor-icons/react'
-import { Team, GameSettings, GameState } from '../App'
-import { getRandomWord } from '../data/wordBanks'
+import { Team, GameSettings, GameState, AuthUser } from '../App'
+import { getRandomWord, isAdultTheme } from '../data/wordBanks'
 
 // Utility function to format time
 const formatTime = (seconds: number): string => {
@@ -18,6 +18,7 @@ interface GameRoundProps {
   gameState: GameState
   currentWord: string
   timeLeft: number
+  currentUser: AuthUser | null
   setCurrentWord: (word: string) => void
   setTimeLeft: (time: number) => void
   updateGamePhase: (phase: GameState['gamePhase']) => void
@@ -32,6 +33,7 @@ export default function GameRound({
   gameState,
   currentWord,
   timeLeft,
+  currentUser,
   setCurrentWord,
   setTimeLeft,
   updateGamePhase,
@@ -45,6 +47,12 @@ export default function GameRound({
   const [shakeAnimation, setShakeAnimation] = useState(false)
 
   const currentTeam = teams[gameState.currentTeam]
+
+  // Security check: prevent unauthorized access to adult themes
+  if (isAdultTheme(gameState.selectedTheme) && !currentUser) {
+    updateGamePhase('auth')
+    return null
+  }
 
   // Generate initial word and auto-start round
   useEffect(() => {

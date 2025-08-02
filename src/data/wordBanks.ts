@@ -99,6 +99,65 @@ export const wordBanks: Record<string, WordBank> = {
   }
 }
 
+// 18+ Adult-themed word banks (restricted to authorized users only)
+export const adultWordBanks: Record<string, WordBank> = {
+  mature: {
+    id: 'mature',
+    name: 'Mature Themes',
+    words: [
+      'Romance', 'Attraction', 'Passion', 'Desire', 'Intimacy', 'Relationship',
+      'Dating', 'Flirting', 'Chemistry', 'Seduction', 'Temptation', 'Lust',
+      'Affair', 'Commitment', 'Marriage', 'Divorce', 'Breakup', 'Heartbreak',
+      'Jealousy', 'Infidelity', 'Trust', 'Betrayal', 'Secret', 'Scandal',
+      'Forbidden', 'Taboo', 'Guilty Pleasure', 'Confession', 'Regret', 'Revenge',
+      'Power', 'Control', 'Dominance', 'Submission', 'Rebellion', 'Authority',
+      'Corruption', 'Manipulation', 'Blackmail', 'Conspiracy', 'Deception', 'Lies',
+      'Truth', 'Reality', 'Fantasy', 'Dream', 'Nightmare', 'Fear',
+      'Anxiety', 'Depression', 'Therapy', 'Addiction', 'Recovery', 'Healing',
+      'Trauma', 'Pain', 'Suffering', 'Loss', 'Grief', 'Mourning',
+      'Death', 'Violence', 'Aggression', 'Conflict', 'War', 'Peace'
+    ]
+  },
+  
+  party: {
+    id: 'party',
+    name: 'Party & Nightlife',
+    words: [
+      'Cocktail', 'Bartender', 'Nightclub', 'Bar', 'Pub', 'Lounge',
+      'Happy Hour', 'Last Call', 'Hangover', 'Drunk', 'Tipsy', 'Sober',
+      'Wine', 'Beer', 'Vodka', 'Whiskey', 'Rum', 'Tequila',
+      'Champagne', 'Martini', 'Margarita', 'Mojito', 'Cosmopolitan', 'Shots',
+      'Dancing', 'DJ', 'Music', 'Bass', 'Beat', 'Rhythm',
+      'Clubbing', 'VIP', 'Bouncer', 'ID Check', 'Cover Charge', 'Line',
+      'Party', 'Celebration', 'Toast', 'Cheers', 'Social', 'Networking',
+      'Mingling', 'Small Talk', 'Pickup Line', 'Number', 'Date', 'Hook up',
+      'One Night Stand', 'Casual', 'Serious', 'Complicated', 'Single', 'Taken',
+      'Available', 'Interested', 'Attracted', 'Chemistry', 'Connection', 'Spark',
+      'Conversation', 'Laughter', 'Fun', 'Wild', 'Crazy', 'Memorable',
+      'Regrettable', 'Embarrassing', 'Confession', 'Secret', 'Gossip', 'Drama'
+    ]
+  },
+  
+  relationships: {
+    id: 'relationships',
+    name: 'Adult Relationships',
+    words: [
+      'Soulmate', 'Partner', 'Lover', 'Girlfriend', 'Boyfriend', 'Spouse',
+      'Ex', 'Crush', 'Friend with Benefits', 'Situationship', 'Open Relationship', 'Polyamory',
+      'Monogamy', 'Commitment', 'Engagement', 'Wedding', 'Honeymoon', 'Anniversary',
+      'Valentine', 'Romance', 'Love Letter', 'Surprise', 'Gift', 'Flowers',
+      'Dinner Date', 'Movie Night', 'Weekend Away', 'Vacation', 'Adventure', 'Memory',
+      'First Kiss', 'First Time', 'Milestone', 'Moving In', 'Meeting Parents', 'Proposal',
+      'Argument', 'Fight', 'Makeup', 'Forgiveness', 'Apology', 'Compromise',
+      'Space', 'Break', 'Separation', 'Reconciliation', 'Closure', 'Moving On',
+      'Rebound', 'Dating App', 'Profile', 'Match', 'Swipe', 'Chat',
+      'Text', 'Call', 'Video Chat', 'Meeting', 'Chemistry', 'Compatibility',
+      'Red Flag', 'Green Flag', 'Deal Breaker', 'Standards', 'Type', 'Preference',
+      'Attraction', 'Physical', 'Emotional', 'Mental', 'Spiritual', 'Connection'
+    ]
+  }
+}
+
 // Function to get random words from a theme
 export function getRandomWords(themeId: string, count: number = 100): string[] {
   const bank = wordBanks[themeId]
@@ -135,6 +194,17 @@ export async function getRandomWord(themeId: string, usedWords: string[] = []): 
     }
   }
   
+  // Handle adult themes (check adult word banks first)
+  const adultBank = adultWordBanks[themeId]
+  if (adultBank) {
+    const availableWords = adultBank.words.filter(word => !usedWords.includes(word))
+    if (availableWords.length === 0) {
+      // If all words used, reset the pool
+      return adultBank.words[Math.floor(Math.random() * adultBank.words.length)]
+    }
+    return availableWords[Math.floor(Math.random() * availableWords.length)]
+  }
+  
   // Handle predefined themes
   const bank = wordBanks[themeId]
   if (!bank) return 'Error: Theme not found'
@@ -146,4 +216,21 @@ export async function getRandomWord(themeId: string, usedWords: string[] = []): 
   }
   
   return availableWords[Math.floor(Math.random() * availableWords.length)]
+}
+
+// Function to check if a theme is adult-only (18+)
+export function isAdultTheme(themeId: string): boolean {
+  return adultWordBanks.hasOwnProperty(themeId)
+}
+
+// Function to get all available themes for a user
+export function getAvailableThemes(isAuthenticated: boolean): WordBank[] {
+  const themes = Object.values(wordBanks)
+  
+  if (isAuthenticated) {
+    // Add adult themes for authenticated users
+    return [...themes, ...Object.values(adultWordBanks)]
+  }
+  
+  return themes
 }

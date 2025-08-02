@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, Play, Question, User, Collection, ArrowLeft } from '@phosphor-icons/react'
+import { Settings, Play, Question, User, Collection, ArrowLeft, Lock } from '@phosphor-icons/react'
 import { Team, GameSettings, GameState, AuthUser } from '../App'
-import { wordBanks } from '../data/wordBanks'
+import { wordBanks, adultWordBanks, getAvailableThemes, isAdultTheme } from '../data/wordBanks'
 import { CustomCollection, getUserCollections } from '../utils/kvUtils'
 
 interface ThemeSelectionProps {
@@ -50,9 +50,30 @@ const themes = [
   }
 ]
 
+const adultThemes = [
+  {
+    id: 'mature',
+    name: 'Mature Themes',
+    emoji: '🔞',
+    description: 'Adult topics and situations'
+  },
+  {
+    id: 'party',
+    name: 'Party & Nightlife',
+    emoji: '🍸',
+    description: 'Nightlife and party culture'
+  },
+  {
+    id: 'relationships',
+    name: 'Adult Relationships',
+    emoji: '💘',
+    description: 'Dating and relationships'
+  }
+]
+
 // Helper function to get sample words from word banks
 const getSampleWords = (themeId: string): string[] => {
-  const bank = wordBanks[themeId]
+  const bank = wordBanks[themeId] || adultWordBanks[themeId]
   if (!bank) return ['Sample', 'Words', 'Here', 'Soon']
   
   // Get first 4 words from the bank
@@ -96,6 +117,11 @@ export default function ThemeSelection({
   }
 
   const handleNext = () => {
+    // Check if selected theme is adult content and user is not authenticated
+    if (isAdultTheme(gameState.selectedTheme) && !currentUser) {
+      updateGamePhase('auth')
+      return
+    }
     updateGamePhase('teams')
   }
 
@@ -290,6 +316,63 @@ export default function ThemeSelection({
                     ))}
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          ))}
+
+          {/* 18+ Adult Themes Section */}
+          {adultThemes.map((theme) => (
+            <Card
+              key={theme.id}
+              className={`relative transition-all duration-200 ${
+                currentUser 
+                  ? `cursor-pointer hover:scale-105 hover:shadow-lg ${
+                      gameState.selectedTheme === theme.id
+                        ? 'ring-2 ring-primary shadow-lg scale-105'
+                        : 'hover:shadow-md'
+                    }`
+                  : 'opacity-60 cursor-not-allowed'
+              }`}
+              onClick={() => currentUser ? handleThemeSelect(theme.id) : null}
+            >
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <span className="text-4xl">{theme.emoji}</span>
+                  {!currentUser && (
+                    <Lock size={20} className="text-muted-foreground" />
+                  )}
+                </div>
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <h3 className="text-xl font-semibold text-foreground">
+                    {theme.name}
+                  </h3>
+                  <Badge variant="destructive" className="text-xs px-2 py-1">
+                    18+
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground text-sm mb-3">
+                  {currentUser ? theme.description : 'Login required for adult content'}
+                </p>
+                {currentUser ? (
+                  <div className="text-xs text-muted-foreground">
+                    <p className="font-medium mb-1">Sample words:</p>
+                    <div className="flex flex-wrap gap-1 justify-center">
+                      {getSampleWords(theme.id).map((word, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-muted rounded-md text-xs"
+                        >
+                          {word}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                    <Lock size={12} />
+                    <span>Restricted Content</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
