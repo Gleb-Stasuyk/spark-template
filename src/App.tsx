@@ -9,7 +9,7 @@ import RoundResults from './components/RoundResults'
 import Victory from './components/Victory'
 import Rules from './components/Rules'
 import Auth from './components/Auth'
-import CustomCollections from './components/CustomCollections'
+
 import { isAdultTheme } from './data/wordBanks'
 
 export interface Team {
@@ -31,7 +31,7 @@ export interface GameState {
   currentTeam: number
   currentRound: number
   roundWords: Array<{ word: string; correct: boolean | null }>
-  gamePhase: 'auth' | 'theme' | 'settings' | 'teams' | 'game' | 'results' | 'victory' | 'rules' | 'custom-collections'
+  gamePhase: 'auth' | 'theme' | 'settings' | 'teams' | 'game' | 'results' | 'victory' | 'rules'
   selectedTheme: string
 }
 
@@ -193,24 +193,6 @@ function App() {
       return (
         <>
           <Victory {...props} />
-          <Toaster />
-        </>
-      )
-    case 'custom-collections':
-      if (!currentUser) {
-        return (
-          <>
-            <Auth onAuthSuccess={handleAuthSuccess} />
-            <Toaster />
-          </>
-        )
-      }
-      return (
-        <>
-          <CustomCollections 
-            user={currentUser} 
-            onBack={() => updateGamePhase('theme')} 
-          />
           <Toaster />
         </>
       )

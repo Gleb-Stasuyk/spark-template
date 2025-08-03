@@ -26,10 +26,12 @@
 
 ### User Authentication & Collections
 - **User accounts**: Registration and login system for personalized features
-- **Custom word collections**: Users can create and manage personal word banks
-- **Collection sharing**: Share collections with specific users or make them public
+- **Integrated custom collections**: Collection management built into theme selection
+- **Collection creation**: Create custom word banks directly from theme selection
+- **Two-tier collection view**: "Mine" and "Shared with Me" tabs in Custom Collections
+- **Collection sharing**: Share collections with specific users by username
 - **Access control**: Adult-themed collections require authentication
-- **Collection management**: Edit, delete, and organize custom word sets
+- **Public/private collections**: Toggle collection visibility settings
 
 ### User Interface
 - **Intuitive navigation**: Smooth flow between setup, gameplay, and results
@@ -123,6 +125,23 @@ This ensures fair play - if a team reaches the winning score but other teams hav
 - **Word Bank**: Curated word collections by theme with appropriate difficulty
 - **Performance**: Fast word loading and smooth timer countdown
 - **Cross-platform**: Responsive design for mobile and desktop play
+
+## User Interface Flow
+
+### Theme Selection (Updated)
+- **Standard Collections**: Pre-built themed word banks (Classic, Movies, Sports, etc.)
+- **Custom Collections Tab**: Requires user authentication
+  - **Mine Sub-tab**: User's created collections with create/edit/share/delete actions
+  - **Shared with Me Sub-tab**: Collections shared by other users (read-only)
+- **Integrated Collection Management**: No separate management page - all actions within theme selection
+- **Collection Cards**: Display collection name, description, word count, and sample words
+- **Adult Content**: Locked behind authentication with clear indicators
+
+### Collection Creation & Management
+- **In-place Creation**: "Create Collection" card within the "Mine" tab
+- **Edit Dialog**: Full collection editing with name, description, words, and privacy settings
+- **Share Dialog**: Share with users by username, view current shares, remove access
+- **Public/Private Toggle**: Control collection visibility directly from collection cards
 
 ## Collection Sharing System
 ### Sharing Features
