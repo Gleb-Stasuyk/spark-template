@@ -246,18 +246,7 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
     resetForm()
   }
 
-  const clearCorruptedData = async () => {
-    if (!confirm('This will delete ALL custom collections. Are you sure?')) return
-    
-    try {
-      await saveCustomCollections([])
-      await loadCollections()
-      toast.success('All data cleared successfully!')
-    } catch (error) {
-      console.error('Error clearing data:', error)
-      toast.error('Failed to clear data')
-    }
-  }
+
 
   return (
     <>
@@ -273,9 +262,6 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
               <h1 className="text-3xl font-bold">Custom Collections</h1>
               <p className="text-muted-foreground">Create, manage and share your personal word collections</p>
             </div>
-            <Button variant="destructive" size="sm" onClick={clearCorruptedData}>
-              Clear All Data
-            </Button>
           </div>
 
           {/* Tabs */}
