@@ -28,6 +28,8 @@
 - **User accounts**: Registration and login system for personalized features
 - **Integrated custom collections**: Collection management built into theme selection
 - **Collection creation**: Create custom word banks directly from theme selection
+- **Bulk import system**: Import words from text files or clipboard with smart processing
+- **Template and export features**: Download template files and export collections for backup
 - **Two-tier collection view**: "Mine" and "Shared with Me" tabs in Custom Collections
 - **Collection sharing**: Share collections with specific users by username
 - **Access control**: Adult-themed collections require authentication
@@ -140,6 +142,13 @@ This ensures fair play - if a team reaches the winning score but other teams hav
 ### Collection Creation & Management
 - **In-place Creation**: "Create Collection" card within the "Mine" tab
 - **Edit Dialog**: Full collection editing with name, description, words, and privacy settings
+- **Bulk Import Features**: 
+  - **File Import**: Upload .txt files with words (one per line or comma-separated)
+  - **Clipboard Import**: Import words directly from clipboard
+  - **Template Download**: Download sample file format for easy preparation
+  - **Export Function**: Export collections to .txt files for backup or sharing
+  - **Smart Processing**: Handles mixed formats, ignores comment lines (#), deduplicates words
+  - **Format Validation**: Supports up to 1000 words per collection, minimum 5 words required
 - **Share Dialog**: Share with users by username, view current shares, remove access
 - **Public/Private Toggle**: Control collection visibility directly from collection cards
 

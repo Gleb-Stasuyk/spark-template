@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
-import { Plus, Trash, Edit, ArrowLeft, Collection, Share, Users, Globe, Lock } from '@phosphor-icons/react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Plus, Trash, Edit, ArrowLeft, Collection, Share, Users, Globe, Lock, Upload, ClipboardText, X, Download, FileText, Question } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { 
   CustomCollection, 
@@ -53,6 +54,9 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
   // Share state
   const [shareUsernames, setShareUsernames] = useState('')
   const [isSharing, setIsSharing] = useState(false)
+  
+  // File import
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const resetForm = () => {
     setName('')
@@ -96,6 +100,210 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
     }
 
     return true
+  }
+
+  const processImportedText = (text: string) => {
+    // Clean and process the imported text
+    const lines = text.split(/[\r\n]+/)
+    const words = lines
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+      .filter(line => !line.startsWith('#')) // Skip comment lines
+      .map(line => {
+        // Handle comma-separated values on a single line
+        if (line.includes(',')) {
+          return line.split(',').map(word => word.trim()).filter(word => word.length > 0)
+        }
+        return [line]
+      })
+      .flat()
+      .filter(word => word.length > 0)
+      .slice(0, 1000) // Limit to 1000 words for performance
+
+    return words
+  }
+
+  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Check file type
+    if (!file.type.startsWith('text/') && !file.name.endsWith('.txt')) {
+      toast.error('Please select a text file (.txt)')
+      return
+    }
+
+    // Check file size (max 1MB)
+    if (file.size > 1024 * 1024) {
+      toast.error('File size must be less than 1MB')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const text = e.target?.result as string
+      if (text) {
+        const words = processImportedText(text)
+        if (words.length === 0) {
+          toast.error('No valid words found in the file')
+          return
+        }
+        
+        if (words.length < 5) {
+          toast.error(`Only ${words.length} words found. At least 5 words are required.`)
+          return
+        }
+
+        // Add to existing words or replace
+        const existingWords = wordsText.trim() ? wordsText.split('\n').filter(w => w.trim()) : []
+        const allWords = [...existingWords, ...words]
+        const uniqueWords = Array.from(new Set(allWords.map(w => w.trim().toLowerCase())))
+          .map(w => allWords.find(word => word.trim().toLowerCase() === w) || w)
+        
+        setWordsText(uniqueWords.join('\n'))
+        toast.success(`Imported ${words.length} words (${uniqueWords.length} total after deduplication)`)
+      }
+    }
+    
+    reader.onerror = () => {
+      toast.error('Failed to read file')
+    }
+    
+    reader.readAsText(file)
+    
+    // Reset file input
+    if (event.target) {
+      event.target.value = ''
+    }
+  }
+
+  const handleClipboardImport = async () => {
+    try {
+      const text = await navigator.clipboard.readText()
+      if (!text.trim()) {
+        toast.error('Clipboard is empty')
+        return
+      }
+
+      const words = processImportedText(text)
+      if (words.length === 0) {
+        toast.error('No valid words found in clipboard')
+        return
+      }
+
+      if (words.length < 5) {
+        toast.error(`Only ${words.length} words found. At least 5 words are required.`)
+        return
+      }
+
+      // Add to existing words or replace
+      const existingWords = wordsText.trim() ? wordsText.split('\n').filter(w => w.trim()) : []
+      const allWords = [...existingWords, ...words]
+      const uniqueWords = Array.from(new Set(allWords.map(w => w.trim().toLowerCase())))
+        .map(w => allWords.find(word => word.trim().toLowerCase() === w) || w)
+      
+      setWordsText(uniqueWords.join('\n'))
+      toast.success(`Imported ${words.length} words from clipboard (${uniqueWords.length} total after deduplication)`)
+    } catch (error) {
+      toast.error('Failed to read from clipboard. Please paste manually.')
+    }
+  }
+
+  const triggerFileImport = () => {
+    fileInputRef.current?.click()
+  }
+
+  const clearWords = () => {
+    setWordsText('')
+    toast.success('Words cleared')
+  }
+
+  const downloadTemplate = () => {
+    const template = `# Word Collection Template
+# Lines starting with # are comments and will be ignored
+# You can add words one per line or comma-separated
+
+# Sample Movie Characters:
+Batman
+Superman
+Wonder Woman
+Flash
+Green Lantern
+
+# Or comma-separated (all on one line):
+Iron Man, Thor, Captain America, Black Widow, Hulk
+
+# Mix both formats as needed:
+Spider-Man
+Wolverine, Storm, Cyclops
+Professor X
+
+# More examples for different themes:
+
+# Foods:
+Pizza, Hamburger, Sushi
+Tacos
+Ice Cream, Chocolate, Cookies
+
+# Animals:
+Lion
+Tiger, Bear, Elephant
+Giraffe
+Penguin, Dolphin, Shark
+
+# Countries:
+United States, Canada, Mexico
+France
+Germany, Italy, Spain
+Japan, China, Australia
+
+# Tips for creating good word collections:
+# - Keep words/phrases short and clear
+# - Choose words your players will know
+# - Avoid very similar words in the same collection
+# - Test your collection by playing with it!
+# - Minimum 5 words required, recommended 20-50 words
+# - Maximum 1000 words per collection
+
+# Delete these examples and add your own words below:
+`
+
+    const blob = new Blob([template], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'word-collection-template.txt'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    toast.success('Template downloaded! Check your Downloads folder.')
+  }
+
+  const exportWords = () => {
+    if (!wordsText.trim()) {
+      toast.error('No words to export')
+      return
+    }
+
+    const words = wordsText.split('\n').filter(word => word.trim().length > 0)
+    const exportText = `# ${name || 'Untitled Collection'}
+${description ? `# ${description}` : ''}
+# Exported on ${new Date().toLocaleDateString()}
+# Total words: ${words.length}
+
+${words.join('\n')}`
+
+    const blob = new Blob([exportText], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${(name || 'collection').replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    toast.success('Words exported!')
   }
 
   const handleSave = async () => {
@@ -394,19 +602,124 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="collection-words">Words (one per line, minimum 5)</Label>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="collection-words">Words (one per line, minimum 5)</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-5 w-5 p-0">
+                          <Question size={14} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-sm">
+                        <div className="space-y-2 text-sm">
+                          <p><strong>Import Options:</strong></p>
+                          <ul className="list-disc pl-4 space-y-1">
+                            <li><strong>Template:</strong> Download example file format</li>
+                            <li><strong>Clipboard:</strong> Import words from copied text</li>
+                            <li><strong>File:</strong> Upload .txt file with words</li>
+                            <li><strong>Export:</strong> Save current words to file</li>
+                          </ul>
+                          <p><strong>Supported formats:</strong><br/>
+                          • One word per line<br/>
+                          • Comma-separated values<br/>
+                          • Lines starting with # are ignored<br/>
+                          • Duplicates are automatically removed</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={downloadTemplate}
+                    disabled={isLoading}
+                    className="flex items-center gap-1"
+                    title="Download template file"
+                  >
+                    <FileText size={14} />
+                    Template
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleClipboardImport}
+                    disabled={isLoading}
+                    className="flex items-center gap-1"
+                  >
+                    <ClipboardText size={14} />
+                    Clipboard
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={triggerFileImport}
+                    disabled={isLoading}
+                    className="flex items-center gap-1"
+                  >
+                    <Upload size={14} />
+                    File
+                  </Button>
+                  {wordsText && (
+                    <>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={exportWords}
+                        disabled={isLoading}
+                        className="flex items-center gap-1"
+                        title="Export current words to file"
+                      >
+                        <Download size={14} />
+                        Export
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={clearWords}
+                        disabled={isLoading}
+                        className="flex items-center gap-1 text-destructive hover:text-destructive"
+                      >
+                        <X size={14} />
+                        Clear
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".txt,text/plain"
+                onChange={handleFileImport}
+                className="hidden"
+              />
               <Textarea
                 id="collection-words"
-                placeholder="Enter words, one per line:&#10;Batman&#10;Superman&#10;Wonder Woman&#10;Flash&#10;Green Lantern"
+                placeholder="Enter words, one per line:&#10;Batman&#10;Superman&#10;Wonder Woman&#10;Flash&#10;Green Lantern&#10;&#10;💡 Use the buttons above to:&#10;• Download a template file&#10;• Import from clipboard&#10;• Import from text file&#10;• Export your words"
                 value={wordsText}
                 onChange={(e) => setWordsText(e.target.value)}
                 rows={12}
                 disabled={isLoading}
               />
               {wordsText && (
-                <p className="text-sm text-muted-foreground">
-                  {wordsText.split('\n').filter(word => word.trim().length > 0).length} words
-                </p>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {wordsText.split('\n').filter(word => word.trim().length > 0).length} words
+                  </span>
+                  <div className="text-xs text-muted-foreground text-right">
+                    <p><strong>Supported formats:</strong> One word per line, comma-separated, or mixed</p>
+                    <p><strong>Comments:</strong> Lines starting with # are ignored</p>
+                  </div>
+                </div>
               )}
             </div>
 
