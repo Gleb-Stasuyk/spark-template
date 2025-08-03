@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, Play, Question, User, Collection, ArrowLeft, Lock } from '@phosphor-icons/react'
+import { Settings, Question, User, Collection, ArrowLeft, Lock } from '@phosphor-icons/react'
 import { Team, GameSettings, GameState, AuthUser } from '../App'
 import { wordBanks, adultWordBanks, getAvailableThemes, isAdultTheme } from '../data/wordBanks'
 import { CustomCollection, getUserCollections, getAccessibleCollections } from '../utils/kvUtils'
@@ -114,14 +114,14 @@ export default function ThemeSelection({
     if (showCustomCollections) {
       setShowCustomCollections(false)
     }
-  }
-
-  const handleNext = () => {
+    
     // Check if selected theme is adult content and user is not authenticated
-    if (isAdultTheme(gameState.selectedTheme) && !currentUser) {
+    if (isAdultTheme(themeId) && !currentUser) {
       updateGamePhase('auth')
       return
     }
+    
+    // Immediately navigate to team setup
     updateGamePhase('teams')
   }
 
@@ -139,6 +139,12 @@ export default function ThemeSelection({
       return
     }
     setShowCustomCollections(true)
+  }
+
+  const handleCustomThemeSelect = (themeId: string) => {
+    updateGameState({ selectedTheme: themeId })
+    // For custom collections, immediately navigate to team setup
+    updateGamePhase('teams')
   }
 
   const handleManageCollections = () => {
@@ -201,7 +207,7 @@ export default function ThemeSelection({
                       ? 'ring-2 ring-primary shadow-lg scale-105'
                       : 'hover:shadow-md'
                   }`}
-                  onClick={() => handleThemeSelect(`custom-${collection.id}`)}
+                  onClick={() => handleCustomThemeSelect(`custom-${collection.id}`)}
                 >
                   <CardContent className="p-6 text-center">
                     <div className="text-4xl mb-3">✨</div>
@@ -254,13 +260,12 @@ export default function ThemeSelection({
 
           <div className="flex justify-end">
             <Button
-              onClick={handleNext}
-              disabled={!gameState.selectedTheme || !gameState.selectedTheme.startsWith('custom-')}
-              className="flex items-center gap-2 px-8"
-              size="lg"
+              variant="outline"
+              onClick={() => setShowCustomCollections(false)}
+              className="flex items-center gap-2"
             >
-              <Play size={20} />
-              Next
+              <ArrowLeft size={16} />
+              Back to Themes
             </Button>
           </div>
         </div>
@@ -271,6 +276,38 @@ export default function ThemeSelection({
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
+        {/* Settings and Rules buttons in upper-left corner */}
+        <div className="flex items-center gap-3 mb-8">
+          <Button
+            variant="outline"
+            onClick={handleSettings}
+            className="flex items-center gap-2"
+          >
+            <Settings size={20} />
+            Settings
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={handleRules}
+            className="flex items-center gap-2"
+          >
+            <Question size={20} />
+            Rules
+          </Button>
+
+          {!currentUser && (
+            <Button
+              variant="outline"
+              onClick={() => updateGamePhase('auth')}
+              className="flex items-center gap-2"
+            >
+              <User size={20} />
+              Login / Register
+            </Button>
+          )}
+        </div>
+
         <div className="flex justify-between items-center mb-8">
           <div className="text-center flex-1">
             <h1 className="text-4xl font-bold text-foreground mb-2">
@@ -457,49 +494,6 @@ export default function ThemeSelection({
               </div>
             </CardContent>
           </Card>
-        </div>
-
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={handleSettings}
-              className="flex items-center gap-2"
-            >
-              <Settings size={20} />
-              Settings
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={handleRules}
-              className="flex items-center gap-2"
-            >
-              <Question size={20} />
-              Rules
-            </Button>
-
-            {!currentUser && (
-              <Button
-                variant="outline"
-                onClick={() => updateGamePhase('auth')}
-                className="flex items-center gap-2"
-              >
-                <User size={20} />
-                Login / Register
-              </Button>
-            )}
-          </div>
-
-          <Button
-            onClick={handleNext}
-            disabled={!gameState.selectedTheme}
-            className="flex items-center gap-2 px-8"
-            size="lg"
-          >
-            <Play size={20} />
-            Next
-          </Button>
         </div>
       </div>
     </div>
