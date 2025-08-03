@@ -45,36 +45,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
     return password.length >= 6
   }
 
-  // Test KV operations
-  const testKVOperations = async () => {
-    try {
-      console.log('Testing KV operations...')
-      
-      // Test 1: Basic set/get
-      await spark.kv.set('test-key', { message: 'hello' })
-      const testResult = await spark.kv.get('test-key')
-      console.log('KV test result:', testResult)
-      
-      // Test 2: Get non-existent key
-      const nonExistent = await spark.kv.get('non-existent-key')
-      console.log('Non-existent key result:', nonExistent)
-      
-      // Test 3: Test with user-like data
-      const testUser = { id: 'test', username: 'test', email: 'test@test.com', password: 'test' }
-      await spark.kv.set('test-users', [testUser])
-      const users = await spark.kv.get<User[]>('test-users')
-      console.log('Test users result:', users)
-      
-      // Clean up
-      await spark.kv.delete('test-key')
-      await spark.kv.delete('test-users')
-      
-      toast.success('KV operations test completed - check console')
-    } catch (error) {
-      console.error('KV test error:', error)
-      toast.error('KV test failed - check console')
-    }
-  }
+
 
   const handleRegister = async () => {
     // Validation checks before setting loading state
@@ -306,11 +277,6 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="mb-4 flex gap-2">
-            <Button onClick={testKVOperations} variant="outline" size="sm" className="text-xs">
-              Test KV
-            </Button>
-          </div>
           
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
