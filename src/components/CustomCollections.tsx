@@ -385,18 +385,15 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
             <h1 className="text-3xl font-bold">Custom Collections</h1>
             <p className="text-muted-foreground">Create, manage and share your personal word collections</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="destructive" size="sm" onClick={clearCorruptedData}>
-              Clear All Data
-            </Button>
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={openCreateDialog} className="flex items-center gap-2">
-                  <Plus size={16} />
-                  New Collection
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+          <Button variant="destructive" size="sm" onClick={clearCorruptedData}>
+            Clear All Data
+          </Button>
+        </div>
+      </div>
+
+      {/* Create Collection Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>
                     {editingCollection ? 'Edit Collection' : 'Create New Collection'}
@@ -474,9 +471,9 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
                 </div>
               </div>
             </DialogContent>
-            </Dialog>
-          </div>
+          </Dialog>
         </div>
+      </div>
 
         {/* Share Dialog */}
         <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
@@ -552,14 +549,37 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
                   <CardDescription className="mb-4">
                     Create your first custom word collection to get started
                   </CardDescription>
-                  <Button onClick={openCreateDialog} className="flex items-center gap-2 mx-auto">
-                    <Plus size={16} />
-                    Create Collection
-                  </Button>
+                  <Card 
+                    className="max-w-xs mx-auto border-2 border-dashed border-primary/30 hover:border-primary/50 cursor-pointer transition-all hover:shadow-lg bg-gradient-to-br from-primary/5 to-accent/5"
+                    onClick={openCreateDialog}
+                  >
+                    <CardContent className="p-8 text-center">
+                      <Plus size={48} className="mx-auto mb-3 text-primary" />
+                      <CardTitle className="text-lg mb-2">Create Collection</CardTitle>
+                      <CardDescription>
+                        Start building your custom word collection
+                      </CardDescription>
+                    </CardContent>
+                  </Card>
                 </CardContent>
               </Card>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {/* Create Collection Card */}
+                <Card 
+                  className="border-2 border-dashed border-primary/30 hover:border-primary/50 cursor-pointer transition-all hover:shadow-lg bg-gradient-to-br from-primary/5 to-accent/5"
+                  onClick={openCreateDialog}
+                >
+                  <CardContent className="p-8 text-center">
+                    <Plus size={48} className="mx-auto mb-3 text-primary" />
+                    <CardTitle className="text-lg mb-2">Create Collection</CardTitle>
+                    <CardDescription>
+                      Add a new custom word collection
+                    </CardDescription>
+                  </CardContent>
+                </Card>
+                
+                {/* Existing Collections */}
                 {myCollections.map((collection) => (
                   <CollectionCard
                     key={collection.id}
