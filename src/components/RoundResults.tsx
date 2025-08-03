@@ -26,7 +26,9 @@ export default function RoundResults({
   const currentTeam = teams[gameState.currentTeam]
   const correctWords = gameState.roundWords.filter(w => w.correct)
   const skippedWords = gameState.roundWords.filter(w => !w.correct)
-  const roundScore = correctWords.length - skippedWords.length
+  const roundScore = settings.penaltiesEnabled 
+    ? correctWords.length - skippedWords.length 
+    : correctWords.length
 
   const handleContinue = () => {
     // Update the current team's rounds played and score
@@ -93,14 +95,16 @@ export default function RoundResults({
               <div className="text-3xl font-bold mb-2">
                 <span className="text-success">+{correctWords.length}</span>
                 <span className="text-muted-foreground mx-2">/</span>
-                <span className="text-destructive">-{skippedWords.length}</span>
+                <span className="text-destructive">
+                  {settings.penaltiesEnabled ? `-${skippedWords.length}` : skippedWords.length}
+                </span>
                 <span className="text-muted-foreground mx-2">=</span>
                 <span className={roundScore >= 0 ? 'text-success' : 'text-destructive'}>
                   {roundScore > 0 ? '+' : ''}{roundScore}
                 </span>
               </div>
               <div className="text-sm text-muted-foreground font-normal">
-                Points earned this round
+                Points earned this round{!settings.penaltiesEnabled ? ' (no penalties)' : ''}
               </div>
             </CardTitle>
           </CardHeader>

@@ -23,6 +23,8 @@ export interface Team {
 export interface GameSettings {
   winningScore: number
   roundTime: number
+  soundVolume: number
+  penaltiesEnabled: boolean
 }
 
 export interface GameState {
@@ -47,7 +49,9 @@ function App() {
   const [teams, setTeams] = useKV<Team[]>('alias-teams', [])
   const [settings, setSettings] = useKV<GameSettings>('alias-settings', {
     winningScore: 50,
-    roundTime: 60
+    roundTime: 60,
+    soundVolume: 50,
+    penaltiesEnabled: true
   })
   const [gameState, setGameState] = useKV<GameState>('alias-game-state', {
     currentTeam: 0,

@@ -80,8 +80,14 @@ export default function GameRound({
       
       // Initialize audio context on first interaction
       SoundUtils.initializeAudio()
+      SoundUtils.setVolume(settings.soundVolume)
     }
   }, [currentWord, gameState.selectedTheme, setCurrentWord, isActive, timeLeft, settings.roundTime, updateGameState])
+
+  // Update sound volume when settings change
+  useEffect(() => {
+    SoundUtils.setVolume(settings.soundVolume)
+  }, [settings.soundVolume])
 
   // Timer logic with sound effects
   useEffect(() => {
@@ -222,12 +228,14 @@ export default function GameRound({
             <div className="text-sm text-muted-foreground">Correct</div>
           </div>
           <div className={`text-center transition-all duration-300 ${shakeAnimation ? 'animate-shake' : ''}`}>
-            <div className="text-3xl font-bold text-destructive">-{skipCount}</div>
+            <div className="text-3xl font-bold text-destructive">
+              {settings.penaltiesEnabled ? `-${skipCount}` : skipCount}
+            </div>
             <div className="text-sm text-muted-foreground">Skipped</div>
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-foreground">
-              {correctCount - skipCount > 0 ? '+' : ''}{correctCount - skipCount}
+              {(settings.penaltiesEnabled ? correctCount - skipCount : correctCount) > 0 ? '+' : ''}{settings.penaltiesEnabled ? correctCount - skipCount : correctCount}
             </div>
             <div className="text-sm text-muted-foreground">Total</div>
           </div>

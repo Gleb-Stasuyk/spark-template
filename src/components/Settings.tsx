@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
-import { ArrowLeft, Check } from '@phosphor-icons/react'
+import { Switch } from '@/components/ui/switch'
+import { ArrowLeft, Check, SpeakerHigh, X } from '@phosphor-icons/react'
 import { Team, GameSettings, GameState } from '../App'
 
 interface SettingsProps {
@@ -24,6 +25,14 @@ export default function Settings({
 
   const handleRoundTimeChange = (value: number[]) => {
     updateSettings({ ...settings, roundTime: value[0] })
+  }
+
+  const handleSoundVolumeChange = (value: number[]) => {
+    updateSettings({ ...settings, soundVolume: value[0] })
+  }
+
+  const handlePenaltiesToggle = (checked: boolean) => {
+    updateSettings({ ...settings, penaltiesEnabled: checked })
   }
 
   const handleBack = () => {
@@ -108,6 +117,62 @@ export default function Settings({
                   <span>120s</span>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <SpeakerHigh size={20} />
+                  Sound Volume
+                </div>
+                <span className="text-primary font-bold">{settings.soundVolume}%</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-muted-foreground text-sm">
+                  Volume for sound effects and feedback
+                </p>
+                <Slider
+                  value={[settings.soundVolume]}
+                  onValueChange={handleSoundVolumeChange}
+                  min={0}
+                  max={100}
+                  step={10}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>0%</span>
+                  <span>Quiet</span>
+                  <span>Loud</span>
+                  <span>100%</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <X size={20} />
+                  Penalties for Skipped Words
+                </div>
+                <Switch
+                  checked={settings.penaltiesEnabled}
+                  onCheckedChange={handlePenaltiesToggle}
+                />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-sm">
+                {settings.penaltiesEnabled 
+                  ? "Teams lose 1 point for each skipped word" 
+                  : "No penalty for skipping words - only gain points for correct answers"
+                }
+              </p>
             </CardContent>
           </Card>
         </div>

@@ -1,6 +1,7 @@
 // Sound utility for creating and playing audio feedback
 export class SoundUtils {
   private static audioContext: AudioContext | null = null
+  private static volume: number = 0.5 // Default 50%
 
   private static getAudioContext(): AudioContext {
     if (!this.audioContext) {
@@ -9,8 +10,15 @@ export class SoundUtils {
     return this.audioContext
   }
 
+  // Set the global volume (0-1)
+  static setVolume(volumePercent: number): void {
+    this.volume = Math.max(0, Math.min(1, volumePercent / 100))
+  }
+
   // Play a success sound for correct answers
   static playSuccessSound(): void {
+    if (this.volume === 0) return
+    
     try {
       const audioContext = this.getAudioContext()
       const oscillator = audioContext.createOscillator()
@@ -24,8 +32,8 @@ export class SoundUtils {
       oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1) // E5
       oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2) // G5
 
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3)
+      gainNode.gain.setValueAtTime(0.3 * this.volume, audioContext.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.01 * this.volume, audioContext.currentTime + 0.3)
 
       oscillator.type = 'sine'
       oscillator.start(audioContext.currentTime)
@@ -37,6 +45,8 @@ export class SoundUtils {
 
   // Play an error sound for skipped/incorrect answers
   static playErrorSound(): void {
+    if (this.volume === 0) return
+    
     try {
       const audioContext = this.getAudioContext()
       const oscillator = audioContext.createOscillator()
@@ -49,8 +59,8 @@ export class SoundUtils {
       oscillator.frequency.setValueAtTime(392.00, audioContext.currentTime) // G4
       oscillator.frequency.setValueAtTime(329.63, audioContext.currentTime + 0.15) // E4
 
-      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime)
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.25)
+      gainNode.gain.setValueAtTime(0.2 * this.volume, audioContext.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.01 * this.volume, audioContext.currentTime + 0.25)
 
       oscillator.type = 'triangle'
       oscillator.start(audioContext.currentTime)
@@ -62,6 +72,8 @@ export class SoundUtils {
 
   // Play a time warning sound
   static playTimeWarningSound(): void {
+    if (this.volume === 0) return
+    
     try {
       const audioContext = this.getAudioContext()
       const oscillator = audioContext.createOscillator()
@@ -72,8 +84,8 @@ export class SoundUtils {
 
       // Quick beep
       oscillator.frequency.setValueAtTime(800, audioContext.currentTime)
-      gainNode.gain.setValueAtTime(0.15, audioContext.currentTime)
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1)
+      gainNode.gain.setValueAtTime(0.15 * this.volume, audioContext.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.01 * this.volume, audioContext.currentTime + 0.1)
 
       oscillator.type = 'square'
       oscillator.start(audioContext.currentTime)
@@ -85,6 +97,8 @@ export class SoundUtils {
 
   // Play a final countdown sound
   static playFinalCountdownSound(): void {
+    if (this.volume === 0) return
+    
     try {
       const audioContext = this.getAudioContext()
       const oscillator = audioContext.createOscillator()
@@ -95,8 +109,8 @@ export class SoundUtils {
 
       // Urgent beep
       oscillator.frequency.setValueAtTime(1000, audioContext.currentTime)
-      gainNode.gain.setValueAtTime(0.25, audioContext.currentTime)
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2)
+      gainNode.gain.setValueAtTime(0.25 * this.volume, audioContext.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.01 * this.volume, audioContext.currentTime + 0.2)
 
       oscillator.type = 'sawtooth'
       oscillator.start(audioContext.currentTime)
