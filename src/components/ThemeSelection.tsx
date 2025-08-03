@@ -276,7 +276,7 @@ export default function ThemeSelection({
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
-        {/* Settings and Rules buttons in upper-left corner */}
+        {/* Settings, Rules, and Auth buttons in upper-left corner */}
         <div className="flex items-center gap-3 mb-8">
           <Button
             variant="outline"
@@ -296,7 +296,7 @@ export default function ThemeSelection({
             Rules
           </Button>
 
-          {!currentUser && (
+          {!currentUser ? (
             <Button
               variant="outline"
               onClick={() => updateGamePhase('auth')}
@@ -305,35 +305,30 @@ export default function ThemeSelection({
               <User size={20} />
               Login / Register
             </Button>
-          )}
-        </div>
-
-        <div className="flex justify-between items-center mb-8">
-          <div className="text-center flex-1">
-            <h1 className="text-4xl font-bold text-foreground mb-2">
-              Choose a Game Theme
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Select the category of words for your Alias game
-            </p>
-          </div>
-          
-          {/* User info and logout */}
-          {currentUser && (
-            <div className="flex items-center gap-3">
+          ) : (
+            <>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <User size={16} />
                 {currentUser.username}
               </div>
               <Button
                 variant="outline"
-                size="sm"
                 onClick={handleLogout}
+                className="flex items-center gap-2"
               >
                 Logout
               </Button>
-            </div>
+            </>
           )}
+        </div>
+
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-foreground mb-2">
+            Choose a Game Theme
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Select the category of words for your Alias game
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -355,6 +350,11 @@ export default function ThemeSelection({
                 <p className="text-muted-foreground text-sm mb-3">
                   {theme.description}
                 </p>
+                <div className="flex items-center justify-center mb-3">
+                  <Badge variant="secondary" className="text-xs">
+                    {wordBanks[theme.id]?.words.length || 0} words
+                  </Badge>
+                </div>
                 <div className="text-xs text-muted-foreground">
                   <p className="font-medium mb-1">Sample words:</p>
                   <div className="flex flex-wrap gap-1 justify-center">
@@ -405,6 +405,11 @@ export default function ThemeSelection({
                 <p className="text-muted-foreground text-sm mb-3">
                   {currentUser ? theme.description : 'Login required for adult content'}
                 </p>
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Badge variant="secondary" className="text-xs">
+                    {adultWordBanks[theme.id]?.words.length || 0} words
+                  </Badge>
+                </div>
                 {currentUser ? (
                   <div className="text-xs text-muted-foreground">
                     <p className="font-medium mb-1">Sample words:</p>
