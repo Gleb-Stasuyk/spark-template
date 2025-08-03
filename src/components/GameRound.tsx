@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { CheckCircle, XCircle, SkipForward, StopCircle, House } from '@phosphor-icons/react'
 import { Team, GameSettings, GameState, AuthUser } from '../App'
 import { getRandomWord, isAdultTheme } from '../data/wordBanks'
+import { SoundUtils } from '../utils/soundUtils'
 
 // Utility function to format time
 const formatTime = (seconds: number): string => {
@@ -45,6 +46,9 @@ export default function GameRound({
   const [correctCount, setCorrectCount] = useState(0)
   const [skipCount, setSkipCount] = useState(0)
   const [shakeAnimation, setShakeAnimation] = useState(false)
+  const [correctAnimation, setCorrectAnimation] = useState(false)
+  const [hasPlayedTimeWarning, setHasPlayedTimeWarning] = useState(false)
+  const [hasPlayedFinalCountdown, setHasPlayedFinalCountdown] = useState(false)
 
   const currentTeam = teams[gameState.currentTeam]
 
@@ -70,23 +74,46 @@ export default function GameRound({
       setIsActive(true)
       setCorrectCount(0)
       setSkipCount(0)
+      setHasPlayedTimeWarning(false)
+      setHasPlayedFinalCountdown(false)
       updateGameState({ roundWords: [] })
+      
+      // Initialize audio context on first interaction
+      SoundUtils.initializeAudio()
     }
   }, [currentWord, gameState.selectedTheme, setCurrentWord, isActive, timeLeft, settings.roundTime, updateGameState])
 
-  // Timer logic
+  // Timer logic with sound effects
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
     
     if (isActive && timeLeft > 0) {
+      // Play warning sounds at specific intervals
+      if (timeLeft === 10 && !hasPlayedTimeWarning) {
+        SoundUtils.playTimeWarningSound()
+        setHasPlayedTimeWarning(true)
+      }
+      
+      if (timeLeft <= 5 && timeLeft > 0 && !hasPlayedFinalCountdown) {
+        SoundUtils.playFinalCountdownSound()
+        setHasPlayedFinalCountdown(true)
+      }
+      
       interval = setInterval(() => {
         setTimeLeft((prev) => {
-          if (prev <= 1) {
+          const newTime = prev - 1
+          
+          // Play countdown sounds for last 5 seconds
+          if (newTime <= 5 && newTime > 0) {
+            SoundUtils.playFinalCountdownSound()
+          }
+          
+          if (newTime <= 0) {
             setIsActive(false)
             handleTimeUp()
             return 0
           }
-          return prev - 1
+          return newTime
         })
       }, 1000)
     }
@@ -94,7 +121,7 @@ export default function GameRound({
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isActive, timeLeft, setTimeLeft])
+  }, [isActive, timeLeft, setTimeLeft, hasPlayedTimeWarning, hasPlayedFinalCountdown])
 
   const getNextWord = useCallback(async () => {
     if (gameState.selectedTheme) {
@@ -109,10 +136,12 @@ export default function GameRound({
     setCorrectCount(prev => prev + 1)
     getNextWord()
     
-    // Add pop animation
-    const element = document.querySelector('.correct-btn')
-    element?.classList.add('animate-score-pop')
-    setTimeout(() => element?.classList.remove('animate-score-pop'), 300)
+    // Play success sound
+    SoundUtils.playSuccessSound()
+    
+    // Add success animation
+    setCorrectAnimation(true)
+    setTimeout(() => setCorrectAnimation(false), 600)
   }
 
   const handleSkip = () => {
@@ -120,6 +149,9 @@ export default function GameRound({
     updateGameState({ roundWords: newRoundWords })
     setSkipCount(prev => prev + 1)
     getNextWord()
+    
+    // Play error sound
+    SoundUtils.playErrorSound()
     
     // Add shake animation
     setShakeAnimation(true)
@@ -144,7 +176,7 @@ export default function GameRound({
   const getTimerColor = () => {
     if (timeLeft > 30) return 'text-success'
     if (timeLeft > 10) return 'text-yellow-500'
-    return 'text-destructive'
+    return 'text-destructive animate-pulse'
   }
 
   return (
@@ -173,9 +205,11 @@ export default function GameRound({
         </div>
 
         {/* Current Word */}
-        <Card className="mb-8">
+        <Card className={`mb-8 transition-all duration-300 ${correctAnimation ? 'animate-celebration bg-success/10 border-success' : ''}`}>
           <CardContent className="p-12 text-center">
-            <div className={`text-game-word text-foreground ${shakeAnimation ? 'animate-shake' : ''}`}>
+            <div className={`text-game-word text-foreground transition-all duration-300 ${
+              shakeAnimation ? 'animate-shake' : ''
+            } ${correctAnimation ? 'text-success' : ''}`}>
               {currentWord}
             </div>
           </CardContent>
@@ -183,11 +217,11 @@ export default function GameRound({
 
         {/* Score Display */}
         <div className="flex justify-center gap-8 mb-8">
-          <div className="text-center">
+          <div className={`text-center transition-all duration-300 ${correctAnimation ? 'animate-score-pop' : ''}`}>
             <div className="text-3xl font-bold text-success">+{correctCount}</div>
             <div className="text-sm text-muted-foreground">Correct</div>
           </div>
-          <div className="text-center">
+          <div className={`text-center transition-all duration-300 ${shakeAnimation ? 'animate-shake' : ''}`}>
             <div className="text-3xl font-bold text-destructive">-{skipCount}</div>
             <div className="text-sm text-muted-foreground">Skipped</div>
           </div>
@@ -204,7 +238,9 @@ export default function GameRound({
           <Button
             onClick={handleCorrect}
             size="lg"
-            className="correct-btn h-20 text-xl bg-success hover:bg-success/90 text-success-foreground"
+            className={`h-20 text-xl bg-success hover:bg-success/90 text-success-foreground transition-all duration-200 ${
+              correctAnimation ? 'animate-score-pop scale-105' : 'hover:scale-105'
+            }`}
           >
             <CheckCircle size={24} className="mr-3" />
             Correct
@@ -214,7 +250,9 @@ export default function GameRound({
             onClick={handleSkip}
             size="lg"
             variant="destructive"
-            className="h-20 text-xl"
+            className={`h-20 text-xl transition-all duration-200 ${
+              shakeAnimation ? 'animate-shake' : 'hover:scale-105'
+            }`}
           >
             <XCircle size={24} className="mr-3" />
             Skip

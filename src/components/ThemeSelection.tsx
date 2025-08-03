@@ -276,50 +276,56 @@ export default function ThemeSelection({
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
-        {/* Settings, Rules, and Auth buttons in upper-left corner */}
-        <div className="flex items-center gap-3 mb-8">
-          <Button
-            variant="outline"
-            onClick={handleSettings}
-            className="flex items-center gap-2"
-          >
-            <Settings size={20} />
-            Settings
-          </Button>
-          
-          <Button
-            variant="outline"
-            onClick={handleRules}
-            className="flex items-center gap-2"
-          >
-            <Question size={20} />
-            Rules
-          </Button>
-
-          {!currentUser ? (
+        {/* Header with navigation buttons */}
+        <div className="flex items-center justify-between mb-8">
+          {/* Settings and Rules buttons in upper-left corner */}
+          <div className="flex items-center gap-3">
             <Button
               variant="outline"
-              onClick={() => updateGamePhase('auth')}
+              onClick={handleSettings}
               className="flex items-center gap-2"
             >
-              <User size={20} />
-              Login / Register
+              <Settings size={20} />
+              Settings
             </Button>
-          ) : (
-            <>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <User size={16} />
-                {currentUser.username}
-              </div>
+            
+            <Button
+              variant="outline"
+              onClick={handleRules}
+              className="flex items-center gap-2"
+            >
+              <Question size={20} />
+              Rules
+            </Button>
+          </div>
+
+          {/* Auth buttons in upper-right corner */}
+          <div className="flex items-center gap-3">
+            {!currentUser ? (
               <Button
                 variant="outline"
-                onClick={handleLogout}
+                onClick={() => updateGamePhase('auth')}
                 className="flex items-center gap-2"
               >
-                Logout
+                <User size={20} />
+                Login / Register
               </Button>
-            </>
-          )}
+            ) : (
+              <>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <User size={16} />
+                  {currentUser.username}
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleLogout}
+                  className="flex items-center gap-2"
+                >
+                  Logout
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="text-center mb-8">
