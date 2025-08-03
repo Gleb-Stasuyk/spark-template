@@ -1,8 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from '@/components/ui/label'
 import { CheckCircle, XCircle, ArrowRight } from '@phosphor-icons/react'
 import { Team, GameSettings, GameState } from '../App'
+import { useState, useEffect } from 'react'
 
 interface RoundResultsProps {
   teams: Team[]
@@ -24,13 +27,35 @@ export default function RoundResults({
   updateTeams
 }: RoundResultsProps) {
   const currentTeam = teams[gameState.currentTeam]
-  const correctWords = gameState.roundWords.filter(w => w.correct)
-  const skippedWords = gameState.roundWords.filter(w => !w.correct)
+  
+  // Local state for modifiable word results
+  const [wordResults, setWordResults] = useState(gameState.roundWords)
+
+  // Update local state when gameState changes
+  useEffect(() => {
+    setWordResults(gameState.roundWords)
+  }, [gameState.roundWords])
+
+  const correctWords = wordResults.filter(w => w.correct)
+  const skippedWords = wordResults.filter(w => !w.correct)
   const roundScore = settings.penaltiesEnabled 
     ? correctWords.length - skippedWords.length 
     : correctWords.length
 
+  const handleWordResultChange = (wordIndex: number, isCorrect: boolean) => {
+    setWordResults(prevResults => 
+      prevResults.map((word, index) => 
+        index === wordIndex ? { ...word, correct: isCorrect } : word
+      )
+    )
+  }
+
   const handleContinue = () => {
+    // Update game state with modified word results
+    updateGameState({
+      roundWords: wordResults
+    })
+
     // Update the current team's rounds played and score
     const updatedTeams = teams.map((team, index) => {
       if (index === gameState.currentTeam) {
@@ -108,6 +133,55 @@ export default function RoundResults({
               </div>
             </CardTitle>
           </CardHeader>
+        </Card>
+
+        {/* Word Results with Radio Buttons */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>
+              Word Results
+              <span className="text-sm font-normal text-muted-foreground ml-2">
+                (You can adjust the results)
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {wordResults.map((word, index) => (
+                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium">{word.word}</span>
+                  </div>
+                  <RadioGroup
+                    value={word.correct ? 'correct' : 'skipped'}
+                    onValueChange={(value) => handleWordResultChange(index, value === 'correct')}
+                    className="flex items-center gap-6"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="correct" id={`correct-${index}`} />
+                      <Label 
+                        htmlFor={`correct-${index}`} 
+                        className="text-success flex items-center gap-1 cursor-pointer"
+                      >
+                        <CheckCircle size={16} />
+                        Correct
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="skipped" id={`skipped-${index}`} />
+                      <Label 
+                        htmlFor={`skipped-${index}`} 
+                        className="text-destructive flex items-center gap-1 cursor-pointer"
+                      >
+                        <XCircle size={16} />
+                        Skipped
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              ))}
+            </div>
+          </CardContent>
         </Card>
 
         {/* Word Lists */}
