@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { Trophy, RotateCcw, House } from '@phosphor-icons/react'
+import { TrophyIcon, ArrowPathIcon, HomeIcon } from 'react-icons/hi2'
 import { Team, GameSettings, GameState } from '../App'
 
 interface VictoryProps {
@@ -44,7 +44,7 @@ export default function Victory({
         <Card className="mb-8 border-2 border-yellow-400 shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center justify-center gap-3 text-2xl">
-              <Trophy size={32} className="text-yellow-500" />
+              <TrophyIcon className="h-8 w-8 text-yellow-500" />
               Winner
             </CardTitle>
           </CardHeader>
@@ -77,7 +77,7 @@ export default function Victory({
                         {team.name}
                       </span>
                       {index === 0 && (
-                        <Trophy size={16} className="text-yellow-500" />
+                        <TrophyIcon className="h-4 w-4 text-yellow-500" />
                       )}
                     </div>
                     <div className="text-right">
@@ -101,7 +101,7 @@ export default function Victory({
             size="lg"
             className="flex items-center gap-2 px-8"
           >
-            <RotateCcw size={20} />
+            <ArrowPathIcon className="h-5 w-5" />
             Play Again
           </Button>
           
@@ -111,7 +111,7 @@ export default function Victory({
             size="lg"
             className="flex items-center gap-2 px-8"
           >
-            <House size={20} />
+            <HomeIcon className="h-5 w-5" />
             Main Menu
           </Button>
         </div>

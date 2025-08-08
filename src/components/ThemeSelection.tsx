@@ -8,7 +8,19 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Settings, Question, User, Collection, Lock, Plus, Edit, Share, Trash, Globe, Users } from '@phosphor-icons/react'
+import { 
+  Cog6ToothIcon, 
+  QuestionMarkCircleIcon, 
+  UserIcon, 
+  RectangleStackIcon, 
+  LockClosedIcon, 
+  PlusIcon, 
+  PencilIcon, 
+  ShareIcon, 
+  TrashIcon, 
+  GlobeAltIcon, 
+  UsersIcon 
+} from 'react-icons/hi2'
 import { toast } from 'sonner'
 import { Team, GameSettings, GameState, AuthUser } from '../App'
 import { wordBanks, adultWordBanks, getAvailableThemes, isAdultTheme } from '../data/wordBanks'
@@ -360,7 +372,7 @@ export default function ThemeSelection({
               onClick={handleSettings}
               className="flex items-center gap-2"
             >
-              <Settings size={20} />
+              <Cog6ToothIcon className="h-5 w-5" />
               Settings
             </Button>
             
@@ -369,7 +381,7 @@ export default function ThemeSelection({
               onClick={handleRules}
               className="flex items-center gap-2"
             >
-              <Question size={20} />
+              <QuestionMarkCircleIcon className="h-5 w-5" />
               Rules
             </Button>
           </div>
@@ -382,13 +394,13 @@ export default function ThemeSelection({
                 onClick={() => updateGamePhase('auth')}
                 className="flex items-center gap-2"
               >
-                <User size={20} />
+                <UserIcon className="h-5 w-5" />
                 Login / Register
               </Button>
             ) : (
               <>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <User size={16} />
+                  <UserIcon className="h-4 w-4" />
                   {currentUser.username}
                 </div>
                 <Button
@@ -417,7 +429,7 @@ export default function ThemeSelection({
             <TabsTrigger value="standard">Standard Collections</TabsTrigger>
             <TabsTrigger value="custom" disabled={!currentUser}>
               Custom Collections
-              {!currentUser && <Lock size={16} className="ml-2" />}
+              {!currentUser && <LockClosedIcon className="h-4 w-4 ml-2" />}
             </TabsTrigger>
           </TabsList>
 
@@ -482,7 +494,7 @@ export default function ThemeSelection({
                     <div className="flex items-center justify-center gap-2 mb-3">
                       <span className="text-4xl">{theme.emoji}</span>
                       {!currentUser && (
-                        <Lock size={20} className="text-muted-foreground" />
+                        <LockClosedIcon className="h-5 w-5 text-muted-foreground" />
                       )}
                     </div>
                     <div className="flex items-center justify-center gap-2 mb-2">
@@ -517,7 +529,7 @@ export default function ThemeSelection({
                       </div>
                     ) : (
                       <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-                        <Lock size={12} />
+                        <LockClosedIcon className="h-3 w-3" />
                         <span>Restricted Content</span>
                       </div>
                     )}
@@ -531,13 +543,13 @@ export default function ThemeSelection({
             {!currentUser ? (
               <Card className="text-center py-12">
                 <CardContent>
-                  <Lock size={64} className="mx-auto mb-4 text-muted-foreground" />
+                  <LockClosedIcon className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                   <h2 className="text-2xl font-bold mb-2">Login Required</h2>
                   <p className="text-muted-foreground mb-4">
                     Please log in to access custom word collections
                   </p>
                   <Button onClick={() => updateGamePhase('auth')} className="flex items-center gap-2 mx-auto">
-                    <User size={16} />
+                    <UserIcon className="h-4 w-4" />
                     Login / Register
                   </Button>
                 </CardContent>
@@ -546,11 +558,11 @@ export default function ThemeSelection({
               <Tabs defaultValue="my-collections" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
                   <TabsTrigger value="my-collections" className="flex items-center gap-2">
-                    <Collection size={16} />
+                    <RectangleStackIcon className="h-4 w-4" />
                     Mine ({myCollections.length})
                   </TabsTrigger>
                   <TabsTrigger value="shared-collections" className="flex items-center gap-2">
-                    <Users size={16} />
+                    <UsersIcon className="h-4 w-4" />
                     Shared with Me ({sharedCollections.length})
                   </TabsTrigger>
                 </TabsList>
@@ -559,13 +571,13 @@ export default function ThemeSelection({
                   {myCollections.length === 0 ? (
                     <Card className="text-center py-12">
                       <CardContent>
-                        <Collection size={64} className="mx-auto mb-4 text-muted-foreground" />
+                        <RectangleStackIcon className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                         <h2 className="text-2xl font-bold mb-2">No Collections Yet</h2>
                         <p className="text-muted-foreground mb-4">
                           Create your first custom word collection to get started
                         </p>
                         <Button onClick={openCreateDialog} className="flex items-center gap-2 mx-auto">
-                          <Plus size={16} />
+                          <PlusIcon className="h-4 w-4" />
                           Create Collection
                         </Button>
                       </CardContent>
@@ -578,7 +590,7 @@ export default function ThemeSelection({
                         onClick={openCreateDialog}
                       >
                         <CardContent className="p-8 text-center">
-                          <Plus size={48} className="mx-auto mb-3 text-primary" />
+                          <PlusIcon className="h-12 w-12 mx-auto mb-3 text-primary" />
                           <h3 className="text-lg font-semibold mb-2">Create Collection</h3>
                           <p className="text-muted-foreground text-sm">
                             Add a new custom word collection
@@ -609,7 +621,7 @@ export default function ThemeSelection({
                   {sharedCollections.length === 0 ? (
                     <Card className="text-center py-12">
                       <CardContent>
-                        <Users size={64} className="mx-auto mb-4 text-muted-foreground" />
+                        <UsersIcon className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                         <h2 className="text-2xl font-bold mb-2">No Shared Collections</h2>
                         <p className="text-muted-foreground">
                           Collections shared with you by other users will appear here
@@ -822,7 +834,7 @@ function CollectionCard({
                   onEdit(collection)
                 }}
               >
-                <Edit size={16} />
+                <PencilIcon className="h-4 w-4" />
               </Button>
               <Button 
                 variant="ghost" 
@@ -832,7 +844,7 @@ function CollectionCard({
                   onShare(collection)
                 }}
               >
-                <Share size={16} />
+                <ShareIcon className="h-4 w-4" />
               </Button>
               <Button 
                 variant="ghost" 
@@ -843,7 +855,7 @@ function CollectionCard({
                 }}
                 title={collection.isPublic ? 'Make private' : 'Make public'}
               >
-                {collection.isPublic ? <Lock size={16} /> : <Globe size={16} />}
+                {collection.isPublic ? <LockClosedIcon className="h-4 w-4" /> : <GlobeAltIcon className="h-4 w-4" />}
               </Button>
               <Button 
                 variant="ghost" 
@@ -854,7 +866,7 @@ function CollectionCard({
                 }}
                 className="text-destructive hover:text-destructive"
               >
-                <Trash size={16} />
+                <TrashIcon className="h-4 w-4" />
               </Button>
             </div>
           )}
@@ -880,7 +892,7 @@ function CollectionCard({
             )}
             {collection.isPublic && (
               <Badge variant="secondary" className="text-xs">
-                <Globe size={10} className="mr-1" />
+                <GlobeAltIcon className="h-2.5 w-2.5 mr-1" />
                 Public
               </Badge>
             )}

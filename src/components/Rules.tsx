@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Users, Clock, Trophy, CheckCircle, XCircle } from '@phosphor-icons/react'
+import { ArrowLeftIcon, UsersIcon, ClockIcon, TrophyIcon, CheckCircleIcon, XCircleIcon } from 'react-icons/hi2'
 import { Team, GameSettings, GameState } from '../App'
 
 interface RulesProps {
@@ -35,7 +35,7 @@ export default function Rules({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Users size={24} className="text-primary" />
+                <UsersIcon className="h-6 w-6 text-primary" />
                 Game Overview
               </CardTitle>
             </CardHeader>
@@ -64,7 +64,7 @@ export default function Rules({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Clock size={24} className="text-accent" />
+                <ClockIcon className="h-6 w-6 text-accent" />
                 Round Process
               </CardTitle>
             </CardHeader>
@@ -94,21 +94,21 @@ export default function Rules({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Trophy size={24} className="text-success" />
+                <TrophyIcon className="h-6 w-6 text-success" />
                 Scoring System
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-3 p-3 bg-success/10 rounded-lg">
-                  <CheckCircle size={20} className="text-success" />
+                  <CheckCircleIcon className="h-5 w-5 text-success" />
                   <div>
                     <div className="font-semibold text-success">Correct Guess</div>
                     <div className="text-sm text-muted-foreground">+1 point</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-destructive/10 rounded-lg">
-                  <XCircle size={20} className="text-destructive" />
+                  <XCircleIcon className="h-5 w-5 text-destructive" />
                   <div>
                     <div className="font-semibold text-destructive">Skip or Wrong</div>
                     <div className="text-sm text-muted-foreground">-1 point</div>
@@ -125,7 +125,7 @@ export default function Rules({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Trophy size={24} className="text-yellow-500" />
+                <TrophyIcon className="h-6 w-6 text-yellow-500" />
                 Victory Conditions
               </CardTitle>
             </CardHeader>
@@ -190,7 +190,7 @@ export default function Rules({
             className="flex items-center gap-2 px-6"
             size="lg"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeftIcon className="h-5 w-5" />
             Back to Game Setup
           </Button>
         </div>

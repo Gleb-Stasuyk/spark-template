@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { ArrowLeft } from '@phosphor-icons/react'
+import { ArrowLeftIcon } from 'react-icons/hi2'
 
 interface User {
   id: string
@@ -112,7 +112,7 @@ export default function AuthTest({ updateGamePhase }: AuthTestProps) {
                 onClick={() => updateGamePhase('theme')}
                 className="flex items-center gap-2"
               >
-                <ArrowLeft size={16} />
+                <ArrowLeftIcon className="h-4 w-4" />
                 Back
               </Button>
             )}

@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
-import { ArrowLeft, Check, SpeakerHigh, X } from '@phosphor-icons/react'
+import { ArrowLeftIcon, CheckIcon, SpeakerWaveIcon, XMarkIcon } from 'react-icons/hi2'
 import { Team, GameSettings, GameState } from '../App'
 
 interface SettingsProps {
@@ -124,7 +124,7 @@ export default function Settings({
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <SpeakerHigh size={20} />
+                  <SpeakerWaveIcon className="h-5 w-5" />
                   Sound Volume
                 </div>
                 <span className="text-primary font-bold">{settings.soundVolume}%</span>
@@ -157,7 +157,7 @@ export default function Settings({
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <X size={20} />
+                  <XMarkIcon className="h-5 w-5" />
                   Penalties for Skipped Words
                 </div>
                 <Switch
@@ -183,7 +183,7 @@ export default function Settings({
             onClick={handleBack}
             className="flex items-center gap-2"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeftIcon className="h-5 w-5" />
             Back
           </Button>
 
@@ -192,7 +192,7 @@ export default function Settings({
             className="flex items-center gap-2 px-8"
             size="lg"
           >
-            <Check size={20} />
+            <CheckIcon className="h-5 w-5" />
             Save Settings
           </Button>
         </div>

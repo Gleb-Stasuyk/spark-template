@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ArrowLeft, Play } from '@phosphor-icons/react'
+import { ArrowLeftIcon, PlayIcon } from 'react-icons/hi2'
 import { Team, GameSettings, GameState, AuthUser } from '../App'
 import { isAdultTheme } from '../data/wordBanks'
 
@@ -144,7 +144,7 @@ export default function TeamSetup({
             onClick={handleBack}
             className="flex items-center gap-2"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeftIcon className="h-5 w-5" />
             Back
           </Button>
 
@@ -154,7 +154,7 @@ export default function TeamSetup({
             className="flex items-center gap-2 px-8"
             size="lg"
           >
-            <Play size={20} />
+            <PlayIcon className="h-5 w-5" />
             Start Game
           </Button>
         </div>

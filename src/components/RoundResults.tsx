@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
-import { CheckCircle, XCircle, ArrowRight } from '@phosphor-icons/react'
+import { CheckCircleIcon, XCircleIcon, ArrowRightIcon } from 'react-icons/hi2'
 import { Team, GameSettings, GameState } from '../App'
 import { useState, useEffect } from 'react'
 
@@ -163,7 +163,7 @@ export default function RoundResults({
                         htmlFor={`correct-${index}`} 
                         className="text-success flex items-center gap-1 cursor-pointer"
                       >
-                        <CheckCircle size={16} />
+                        <CheckCircleIcon className="h-4 w-4" />
                         Correct
                       </Label>
                     </div>
@@ -173,7 +173,7 @@ export default function RoundResults({
                         htmlFor={`skipped-${index}`} 
                         className="text-destructive flex items-center gap-1 cursor-pointer"
                       >
-                        <XCircle size={16} />
+                        <XCircleIcon className="h-4 w-4" />
                         Skipped
                       </Label>
                     </div>
@@ -190,7 +190,7 @@ export default function RoundResults({
             <Card>
               <CardHeader>
                 <CardTitle className="text-success flex items-center gap-2">
-                  <CheckCircle size={20} />
+                  <CheckCircleIcon className="h-5 w-5" />
                   Correct Words ({correctWords.length})
                 </CardTitle>
               </CardHeader>
@@ -210,7 +210,7 @@ export default function RoundResults({
             <Card>
               <CardHeader>
                 <CardTitle className="text-destructive flex items-center gap-2">
-                  <XCircle size={20} />
+                  <XCircleIcon className="h-5 w-5" />
                   Skipped Words ({skippedWords.length})
                 </CardTitle>
               </CardHeader>
@@ -277,7 +277,7 @@ export default function RoundResults({
 
         <div className="text-center">
           <Button onClick={handleContinue} size="lg" className="px-12">
-            <ArrowRight size={20} className="mr-2" />
+            <ArrowRightIcon className="h-5 w-5 mr-2" />
             Continue
           </Button>
         </div>
