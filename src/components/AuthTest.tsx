@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
+import { kv } from '../utils/localStorage'
 
 
 interface User {
@@ -32,7 +33,7 @@ export default function AuthTest({ updateGamePhase }: AuthTestProps) {
 
     try {
       // Clear existing users for clean test
-      await spark.kv.delete('alias-users')
+      await kv.delete('alias-users')
       addResult('✓ Cleared existing users')
 
       // Test 1: Create first user
@@ -43,11 +44,11 @@ export default function AuthTest({ updateGamePhase }: AuthTestProps) {
         password: 'password123'
       }
 
-      await spark.kv.set('alias-users', [testUser1])
+      await kv.set('alias-users', [testUser1])
       addResult('✓ Created first test user: testuser / test@example.com')
 
       // Test 2: Try to register with same username
-      const existingUsers = await spark.kv.get<User[]>('alias-users') || []
+      const existingUsers = await kv.get<User[]>('alias-users') || []
       const usernameExists = existingUsers.some(user => 
         user.username.toLowerCase() === 'testuser'.toLowerCase()
       )
@@ -78,11 +79,11 @@ export default function AuthTest({ updateGamePhase }: AuthTestProps) {
       }
 
       const updatedUsers = [...existingUsers, testUser2]
-      await spark.kv.set('alias-users', updatedUsers)
+      await kv.set('alias-users', updatedUsers)
       addResult('✓ Successfully created second user with unique credentials')
 
       // Test 5: Verify both users exist
-      const finalUsers = await spark.kv.get<User[]>('alias-users') || []
+      const finalUsers = await kv.get<User[]>('alias-users') || []
       if (finalUsers.length === 2) {
         addResult(`✓ Database contains ${finalUsers.length} users as expected`)
         addResult(`  - User 1: ${finalUsers[0].username} (${finalUsers[0].email})`)

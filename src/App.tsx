@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useLocalStorage } from './hooks/useLocalStorage'
 import { Toaster } from '@/components/ui/sonner'
 import ThemeSelection from './components/ThemeSelection'
 import Settings from './components/Settings'
@@ -43,17 +43,17 @@ export interface AuthUser {
 
 function App() {
   // Auth state
-  const [currentUser, setCurrentUser] = useKV<AuthUser | null>('alias-current-user', null)
+  const [currentUser, setCurrentUser] = useLocalStorage<AuthUser | null>('alias-current-user', null)
   
   // Persistent game data
-  const [teams, setTeams] = useKV<Team[]>('alias-teams', [])
-  const [settings, setSettings] = useKV<GameSettings>('alias-settings', {
+  const [teams, setTeams] = useLocalStorage<Team[]>('alias-teams', [])
+  const [settings, setSettings] = useLocalStorage<GameSettings>('alias-settings', {
     winningScore: 50,
     roundTime: 60,
     soundVolume: 50,
     penaltiesEnabled: true
   })
-  const [gameState, setGameState] = useKV<GameState>('alias-game-state', {
+  const [gameState, setGameState] = useLocalStorage<GameState>('alias-game-state', {
     currentTeam: 0,
     currentRound: 1,
     roundWords: [],

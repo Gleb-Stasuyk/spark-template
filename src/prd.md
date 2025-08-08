@@ -123,10 +123,20 @@ This ensures fair play - if a team reaches the winning score but other teams hav
 - Examples and context
 
 ## Implementation Considerations
-- **State Management**: Persistent game state using useKV for cross-session continuity
+- **State Management**: Persistent game state using localStorage-based hooks for cross-session continuity
+- **Data Persistence**: Custom localStorage wrapper replacing GitHub Spark dependencies
 - **Word Bank**: Curated word collections by theme with appropriate difficulty
 - **Performance**: Fast word loading and smooth timer countdown
 - **Cross-platform**: Responsive design for mobile and desktop play
+- **Independence**: Self-contained application with no external service dependencies
+
+## Technical Architecture
+- **Frontend Framework**: React with TypeScript
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **Icons**: Lucide React icon library
+- **Storage**: Browser localStorage for all persistent data
+- **State Management**: Custom useLocalStorage hook for reactive persistence
+- **Build**: Vite for development and production builds
 
 ## User Interface Flow
 
