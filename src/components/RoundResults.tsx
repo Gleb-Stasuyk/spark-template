@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
-import { CheckCircleIcon, XCircleIcon, ArrowRightIcon } from 'react-icons/hi2'
+
 import { Team, GameSettings, GameState } from '../App'
 import { useState, useEffect } from 'react'
 
@@ -161,20 +161,18 @@ export default function RoundResults({
                       <RadioGroupItem value="correct" id={`correct-${index}`} />
                       <Label 
                         htmlFor={`correct-${index}`} 
-                        className="text-success flex items-center gap-1 cursor-pointer"
+                        className="text-success cursor-pointer"
                       >
-                        <CheckCircleIcon className="h-4 w-4" />
-                        Correct
+                        ✅ Correct
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="skipped" id={`skipped-${index}`} />
                       <Label 
                         htmlFor={`skipped-${index}`} 
-                        className="text-destructive flex items-center gap-1 cursor-pointer"
+                        className="text-destructive cursor-pointer"
                       >
-                        <XCircleIcon className="h-4 w-4" />
-                        Skipped
+                        ❌ Skipped
                       </Label>
                     </div>
                   </RadioGroup>
@@ -189,9 +187,8 @@ export default function RoundResults({
           {correctWords.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-success flex items-center gap-2">
-                  <CheckCircleIcon className="h-5 w-5" />
-                  Correct Words ({correctWords.length})
+                <CardTitle className="text-success">
+                  ✅ Correct Words ({correctWords.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -209,9 +206,8 @@ export default function RoundResults({
           {skippedWords.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-destructive flex items-center gap-2">
-                  <XCircleIcon className="h-5 w-5" />
-                  Skipped Words ({skippedWords.length})
+                <CardTitle className="text-destructive">
+                  ❌ Skipped Words ({skippedWords.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -277,7 +273,6 @@ export default function RoundResults({
 
         <div className="text-center">
           <Button onClick={handleContinue} size="lg" className="px-12">
-            <ArrowRightIcon className="h-5 w-5 mr-2" />
             Continue
           </Button>
         </div>

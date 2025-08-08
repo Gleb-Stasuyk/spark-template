@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
-import { ArrowLeftIcon, CheckIcon, SpeakerWaveIcon, XMarkIcon } from 'react-icons/hi2'
+
 import { Team, GameSettings, GameState } from '../App'
 
 interface SettingsProps {
@@ -123,9 +123,8 @@ export default function Settings({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <SpeakerWaveIcon className="h-5 w-5" />
-                  Sound Volume
+                <div>
+                  🔊 Sound Volume
                 </div>
                 <span className="text-primary font-bold">{settings.soundVolume}%</span>
               </CardTitle>
@@ -156,9 +155,8 @@ export default function Settings({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <XMarkIcon className="h-5 w-5" />
-                  Penalties for Skipped Words
+                <div>
+                  ❌ Penalties for Skipped Words
                 </div>
                 <Switch
                   checked={settings.penaltiesEnabled}
@@ -181,18 +179,15 @@ export default function Settings({
           <Button
             variant="outline"
             onClick={handleBack}
-            className="flex items-center gap-2"
           >
-            <ArrowLeftIcon className="h-5 w-5" />
             Back
           </Button>
 
           <Button
             onClick={handleSave}
-            className="flex items-center gap-2 px-8"
+            className="px-8"
             size="lg"
           >
-            <CheckIcon className="h-5 w-5" />
             Save Settings
           </Button>
         </div>

@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { EyeIcon, EyeSlashIcon, UserPlusIcon, ArrowRightOnRectangleIcon } from 'react-icons/hi2'
+
 import { toast } from 'sonner'
 import { saveUserInfo } from '../utils/kvUtils'
 
@@ -280,12 +280,10 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
           
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login" className="flex items-center gap-2">
-                <ArrowRightOnRectangleIcon className="h-4 w-4" />
+              <TabsTrigger value="login">
                 Login
               </TabsTrigger>
-              <TabsTrigger value="register" className="flex items-center gap-2">
-                <UserPlusIcon className="h-4 w-4" />
+              <TabsTrigger value="register">
                 Register
               </TabsTrigger>
             </TabsList>
@@ -323,7 +321,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
                     onClick={() => setShowLoginPassword(!showLoginPassword)}
                     disabled={isLoading}
                   >
-                    {showLoginPassword ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                    {showLoginPassword ? '👁️' : '👁️‍🗨️'}
                   </Button>
                 </div>
               </div>
@@ -381,7 +379,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
                     onClick={() => setShowRegPassword(!showRegPassword)}
                     disabled={isLoading}
                   >
-                    {showRegPassword ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                    {showRegPassword ? '👁️' : '👁️‍🗨️'}
                   </Button>
                 </div>
               </div>
@@ -406,7 +404,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     disabled={isLoading}
                   >
-                    {showConfirmPassword ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                    {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
                   </Button>
                 </div>
               </div>

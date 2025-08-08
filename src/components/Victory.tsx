@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { TrophyIcon, ArrowPathIcon, HomeIcon } from 'react-icons/hi2'
+
 import { Team, GameSettings, GameState } from '../App'
 
 interface VictoryProps {
@@ -44,8 +44,7 @@ export default function Victory({
         <Card className="mb-8 border-2 border-yellow-400 shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center justify-center gap-3 text-2xl">
-              <TrophyIcon className="h-8 w-8 text-yellow-500" />
-              Winner
+              🏆 Winner
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -77,7 +76,7 @@ export default function Victory({
                         {team.name}
                       </span>
                       {index === 0 && (
-                        <TrophyIcon className="h-4 w-4 text-yellow-500" />
+                        <span className="text-yellow-500">🏆</span>
                       )}
                     </div>
                     <div className="text-right">
@@ -99,9 +98,8 @@ export default function Victory({
           <Button
             onClick={handlePlayAgain}
             size="lg"
-            className="flex items-center gap-2 px-8"
+            className="px-8"
           >
-            <ArrowPathIcon className="h-5 w-5" />
             Play Again
           </Button>
           
@@ -109,9 +107,8 @@ export default function Victory({
             variant="outline"
             onClick={handleMainMenu}
             size="lg"
-            className="flex items-center gap-2 px-8"
+            className="px-8"
           >
-            <HomeIcon className="h-5 w-5" />
             Main Menu
           </Button>
         </div>

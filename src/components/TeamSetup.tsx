@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ArrowLeftIcon, PlayIcon } from 'react-icons/hi2'
+
 import { Team, GameSettings, GameState, AuthUser } from '../App'
 import { isAdultTheme } from '../data/wordBanks'
 
@@ -142,19 +142,16 @@ export default function TeamSetup({
           <Button
             variant="outline"
             onClick={handleBack}
-            className="flex items-center gap-2"
           >
-            <ArrowLeftIcon className="h-5 w-5" />
             Back
           </Button>
 
           <Button
             onClick={handleStartGame}
             disabled={!isValidSetup}
-            className="flex items-center gap-2 px-8"
+            className="px-8"
             size="lg"
           >
-            <PlayIcon className="h-5 w-5" />
             Start Game
           </Button>
         </div>

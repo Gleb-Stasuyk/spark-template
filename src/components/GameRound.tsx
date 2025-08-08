@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { CheckCircleIcon, XCircleIcon, ForwardIcon, StopCircleIcon, HomeIcon } from 'react-icons/hi2'
+
 import { Team, GameSettings, GameState, AuthUser } from '../App'
 import { getRandomWord, isAdultTheme } from '../data/wordBanks'
 import { SoundUtils } from '../utils/soundUtils'
@@ -192,7 +192,6 @@ export default function GameRound({
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={handleMainMenu} size="sm">
-              <HomeIcon className="h-4 w-4 mr-2" />
               Main Menu
             </Button>
             <div className={`px-4 py-2 rounded-full ${currentTeam?.color || 'bg-primary'}`}>
@@ -205,7 +204,6 @@ export default function GameRound({
           </div>
           
           <Button variant="outline" onClick={handleEndEarly} size="sm">
-            <StopCircleIcon className="h-4 w-4 mr-2" />
             End Early
           </Button>
         </div>
@@ -250,7 +248,6 @@ export default function GameRound({
               correctAnimation ? 'animate-score-pop scale-105' : 'hover:scale-105'
             }`}
           >
-            <CheckCircleIcon className="h-6 w-6 mr-3" />
             Correct
           </Button>
           
@@ -262,7 +259,6 @@ export default function GameRound({
               shakeAnimation ? 'animate-shake' : 'hover:scale-105'
             }`}
           >
-            <XCircleIcon className="h-6 w-6 mr-3" />
             Skip
           </Button>
         </div>

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeftIcon, UsersIcon, ClockIcon, TrophyIcon, CheckCircleIcon, XCircleIcon } from 'react-icons/hi2'
+
 import { Team, GameSettings, GameState } from '../App'
 
 interface RulesProps {
@@ -34,9 +34,8 @@ export default function Rules({
           {/* Game Overview */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UsersIcon className="h-6 w-6 text-primary" />
-                Game Overview
+              <CardTitle>
+                👥 Game Overview
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -63,9 +62,8 @@ export default function Rules({
           {/* Round Process */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ClockIcon className="h-6 w-6 text-accent" />
-                Round Process
+              <CardTitle>
+                ⏰ Round Process
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -93,22 +91,21 @@ export default function Rules({
           {/* Scoring System */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrophyIcon className="h-6 w-6 text-success" />
-                Scoring System
+              <CardTitle>
+                🏆 Scoring System
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-3 p-3 bg-success/10 rounded-lg">
-                  <CheckCircleIcon className="h-5 w-5 text-success" />
+                  <span className="h-5 w-5 text-success">✅</span>
                   <div>
                     <div className="font-semibold text-success">Correct Guess</div>
                     <div className="text-sm text-muted-foreground">+1 point</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-destructive/10 rounded-lg">
-                  <XCircleIcon className="h-5 w-5 text-destructive" />
+                  <span className="h-5 w-5 text-destructive">❌</span>
                   <div>
                     <div className="font-semibold text-destructive">Skip or Wrong</div>
                     <div className="text-sm text-muted-foreground">-1 point</div>
@@ -124,9 +121,8 @@ export default function Rules({
           {/* Victory Conditions */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrophyIcon className="h-6 w-6 text-yellow-500" />
-                Victory Conditions
+              <CardTitle>
+                🏆 Victory Conditions
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -187,10 +183,9 @@ export default function Rules({
           <Button
             onClick={handleBack}
             variant="outline"
-            className="flex items-center gap-2 px-6"
+            className="px-6"
             size="lg"
           >
-            <ArrowLeftIcon className="h-5 w-5" />
             Back to Game Setup
           </Button>
         </div>
