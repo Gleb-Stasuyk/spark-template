@@ -10,7 +10,22 @@ import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Plus, Trash, Edit, ArrowLeft, Collection, Share, Users, Globe, Lock, Upload, ClipboardText, X, Download, FileText, Question } from '@phosphor-icons/react'
+// Icon components replaced with UTF-8 symbols
+const PlusIcon = () => <span>➕</span>
+const TrashIcon = () => <span>🗑️</span>
+const EditIcon = () => <span>✏️</span>
+const ArrowLeftIcon = () => <span>←</span>
+const CollectionIcon = () => <span>📚</span>
+const ShareIcon = () => <span>🔗</span>
+const UsersIcon = () => <span>👥</span>
+const GlobeIcon = () => <span>🌐</span>
+const LockIcon = () => <span>🔒</span>
+const UploadIcon = () => <span>📤</span>
+const ClipboardTextIcon = () => <span>📋</span>
+const XIcon = () => <span>✖️</span>
+const DownloadIcon = () => <span>💾</span>
+const FileTextIcon = () => <span>📄</span>
+const QuestionIcon = () => <span>❓</span>
 import { toast } from 'sonner'
 import { 
   CustomCollection, 
@@ -463,7 +478,7 @@ ${words.join('\n')}`
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
             <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
-              <ArrowLeft size={16} />
+              <ArrowLeftIcon />
               Back to Game
             </Button>
             <div className="flex-1">
@@ -476,11 +491,11 @@ ${words.join('\n')}`
           <Tabs defaultValue="my-collections" className="space-y-6">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="my-collections" className="flex items-center gap-2">
-                <Collection size={16} />
+                <CollectionIcon />
                 My Collections ({myCollections.length})
               </TabsTrigger>
               <TabsTrigger value="shared-collections" className="flex items-center gap-2">
-                <Users size={16} />
+                <UsersIcon />
                 Shared with Me ({sharedCollections.length})
               </TabsTrigger>
             </TabsList>
@@ -489,13 +504,13 @@ ${words.join('\n')}`
               {myCollections.length === 0 ? (
                 <Card className="text-center py-12">
                   <CardContent>
-                    <Collection size={64} className="mx-auto mb-4 text-muted-foreground" />
+                    <div className="mx-auto mb-4 text-muted-foreground text-6xl"><CollectionIcon /></div>
                     <CardTitle className="mb-2">No Collections Yet</CardTitle>
                     <CardDescription className="mb-4">
                       Create your first custom word collection to get started
                     </CardDescription>
                     <Button onClick={openCreateDialog} className="flex items-center gap-2">
-                      <Plus size={16} />
+                      <PlusIcon />
                       Create Collection
                     </Button>
                   </CardContent>
@@ -508,7 +523,7 @@ ${words.join('\n')}`
                     onClick={openCreateDialog}
                   >
                     <CardContent className="p-8 text-center">
-                      <Plus size={48} className="mx-auto mb-3 text-primary" />
+                      <div className="mx-auto mb-3 text-primary text-5xl"><PlusIcon /></div>
                       <CardTitle className="text-lg mb-2">Create Collection</CardTitle>
                       <CardDescription>
                         Add a new custom word collection
@@ -536,7 +551,7 @@ ${words.join('\n')}`
               {sharedCollections.length === 0 ? (
                 <Card className="text-center py-12">
                   <CardContent>
-                    <Users size={64} className="mx-auto mb-4 text-muted-foreground" />
+                    <div className="mx-auto mb-4 text-muted-foreground text-6xl"><UsersIcon /></div>
                     <CardTitle className="mb-2">No Shared Collections</CardTitle>
                     <CardDescription>
                       Collections shared with you by other users will appear here
@@ -609,7 +624,7 @@ ${words.join('\n')}`
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button variant="ghost" size="sm" className="h-5 w-5 p-0">
-                          <Question size={14} />
+                          <QuestionIcon />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-sm">
@@ -641,7 +656,7 @@ ${words.join('\n')}`
                     className="flex items-center gap-1"
                     title="Download template file"
                   >
-                    <FileText size={14} />
+                    <FileTextIcon />
                     Template
                   </Button>
                   <Button 
@@ -652,7 +667,7 @@ ${words.join('\n')}`
                     disabled={isLoading}
                     className="flex items-center gap-1"
                   >
-                    <ClipboardText size={14} />
+                    <ClipboardTextIcon />
                     Clipboard
                   </Button>
                   <Button 
@@ -663,7 +678,7 @@ ${words.join('\n')}`
                     disabled={isLoading}
                     className="flex items-center gap-1"
                   >
-                    <Upload size={14} />
+                    <UploadIcon />
                     File
                   </Button>
                   {wordsText && (
@@ -677,7 +692,7 @@ ${words.join('\n')}`
                         className="flex items-center gap-1"
                         title="Export current words to file"
                       >
-                        <Download size={14} />
+                        <DownloadIcon />
                         Export
                       </Button>
                       <Button 
@@ -688,7 +703,7 @@ ${words.join('\n')}`
                         disabled={isLoading}
                         className="flex items-center gap-1 text-destructive hover:text-destructive"
                       >
-                        <X size={14} />
+                        <XIcon />
                         Clear
                       </Button>
                     </>
@@ -846,10 +861,10 @@ function CollectionCard({ collection, isOwner, onEdit, onDelete, onShare, onTogg
           {isOwner && (
             <div className="flex gap-1">
               <Button variant="ghost" size="sm" onClick={() => onEdit(collection)}>
-                <Edit size={16} />
+                <EditIcon />
               </Button>
               <Button variant="ghost" size="sm" onClick={() => onShare(collection)}>
-                <Share size={16} />
+                <ShareIcon />
               </Button>
               <Button 
                 variant="ghost" 
@@ -857,7 +872,7 @@ function CollectionCard({ collection, isOwner, onEdit, onDelete, onShare, onTogg
                 onClick={() => onTogglePublic(collection)}
                 title={collection.isPublic ? 'Make private' : 'Make public'}
               >
-                {collection.isPublic ? <Lock size={16} /> : <Globe size={16} />}
+                {collection.isPublic ? <LockIcon /> : <GlobeIcon />}
               </Button>
               <Button 
                 variant="ghost" 
@@ -865,7 +880,7 @@ function CollectionCard({ collection, isOwner, onEdit, onDelete, onShare, onTogg
                 onClick={() => onDelete(collection.id)}
                 className="text-destructive hover:text-destructive"
               >
-                <Trash size={16} />
+                <TrashIcon />
               </Button>
             </div>
           )}
