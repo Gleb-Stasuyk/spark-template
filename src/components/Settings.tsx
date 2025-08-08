@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
+import { ArrowLeft } from '@phosphor-icons/react'
 
 import { Team, GameSettings, GameState } from '../App'
 
@@ -179,7 +180,9 @@ export default function Settings({
           <Button
             variant="outline"
             onClick={handleBack}
+            className="flex items-center gap-2"
           >
+            <ArrowLeft />
             Back
           </Button>
 

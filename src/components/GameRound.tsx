@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { House } from '@phosphor-icons/react'
 
 import { Team, GameSettings, GameState, AuthUser } from '../App'
 import { getRandomWord, isAdultTheme } from '../data/wordBanks'
@@ -191,7 +192,8 @@ export default function GameRound({
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={handleMainMenu} size="sm">
+            <Button variant="outline" onClick={handleMainMenu} size="sm" className="flex items-center gap-2">
+              <House />
               Main Menu
             </Button>
             <div className={`px-4 py-2 rounded-full ${currentTeam?.color || 'bg-primary'}`}>

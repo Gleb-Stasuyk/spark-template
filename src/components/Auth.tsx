@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { toast } from 'sonner'
 import { saveUserInfo } from '../utils/kvUtils'
-import { kv } from '../utils/localStorage'
 
 interface AuthProps {
   onAuthSuccess: (user: { id: string; username: string; email: string }) => void
@@ -78,7 +77,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
       // Get existing users with more detailed logging
       let existingUsers: User[] = []
       try {
-        const users = await kv.get<User[]>('alias-users')
+        const users = await spark.kv.get<User[]>('alias-users')
         existingUsers = users || []
         console.log('Retrieved existing users:', existingUsers.length)
       } catch (kvError) {
@@ -123,7 +122,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
 
       while (retries > 0 && !saved) {
         try {
-          await kv.set('alias-users', updatedUsers)
+          await spark.kv.set('alias-users', updatedUsers)
           console.log('User saved successfully')
           saved = true
         } catch (saveError) {
@@ -149,7 +148,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
 
       // Verify the user was saved
       try {
-        const verifyUsers = await kv.get<User[]>('alias-users') || []
+        const verifyUsers = await spark.kv.get<User[]>('alias-users') || []
         const userFound = verifyUsers.find(u => u.id === newUser.id)
         if (!userFound) {
           throw new Error('User verification failed - user not found after save')
@@ -203,7 +202,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
       
       let existingUsers: User[] = []
       try {
-        const users = await kv.get<User[]>('alias-users')
+        const users = await spark.kv.get<User[]>('alias-users')
         existingUsers = users || []
         console.log('Retrieved users for login:', existingUsers.length)
       } catch (kvError) {

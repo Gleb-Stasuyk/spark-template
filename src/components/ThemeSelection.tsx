@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
+import { Gear, Question, SignOut, Lock, Plus } from '@phosphor-icons/react'
 
 import { toast } from 'sonner'
 import { Team, GameSettings, GameState, AuthUser } from '../App'
@@ -359,14 +360,14 @@ export default function ThemeSelection({
               variant="outline"
               onClick={handleSettings}
             >
-              ⚙️ Settings
+              <Gear /> Settings
             </Button>
             
             <Button
               variant="outline"
               onClick={handleRules}
             >
-              ❓ Rules
+              <Question /> Rules
             </Button>
           </div>
 
@@ -410,7 +411,7 @@ export default function ThemeSelection({
             <TabsTrigger value="standard">Standard Collections</TabsTrigger>
             <TabsTrigger value="custom" disabled={!currentUser}>
               Custom Collections
-              {!currentUser && <span className="h-4 w-4 ml-2">🔒</span>}
+              {!currentUser && <span className="h-4 w-4 ml-2"><Lock /></span>}
             </TabsTrigger>
           </TabsList>
 
@@ -475,7 +476,7 @@ export default function ThemeSelection({
                     <div className="flex items-center justify-center gap-2 mb-3">
                       <span className="text-4xl">{theme.emoji}</span>
                       {!currentUser && (
-                        <span className="h-5 w-5 text-muted-foreground">🔒</span>
+                        <span className="h-5 w-5 text-muted-foreground"><Lock /></span>
                       )}
                     </div>
                     <div className="flex items-center justify-center gap-2 mb-2">
@@ -510,7 +511,7 @@ export default function ThemeSelection({
                       </div>
                     ) : (
                       <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-                        <span className="h-3 w-3">🔒</span>
+                        <span className="h-3 w-3"><Lock /></span>
                         <span>Restricted Content</span>
                       </div>
                     )}
@@ -524,7 +525,7 @@ export default function ThemeSelection({
             {!currentUser ? (
               <Card className="text-center py-12">
                 <CardContent>
-                  <span className="h-16 w-16 mx-auto mb-4 text-muted-foreground text-6xl">🔒</span>
+                  <span className="h-16 w-16 mx-auto mb-4 text-muted-foreground text-6xl"><Lock /></span>
                   <h2 className="text-2xl font-bold mb-2">Login Required</h2>
                   <p className="text-muted-foreground mb-4">
                     Please log in to access custom word collections
@@ -555,7 +556,7 @@ export default function ThemeSelection({
                           Create your first custom word collection to get started
                         </p>
                         <Button onClick={openCreateDialog} className="mx-auto">
-                          ➕ Create Collection
+                          <Plus /> Create Collection
                         </Button>
                       </CardContent>
                     </Card>
@@ -567,7 +568,7 @@ export default function ThemeSelection({
                         onClick={openCreateDialog}
                       >
                         <CardContent className="p-8 text-center">
-                          <span className="h-12 w-12 mx-auto mb-3 text-primary text-5xl block">➕</span>
+                          <span className="h-12 w-12 mx-auto mb-3 text-primary text-5xl block"><Plus /></span>
                           <h3 className="text-lg font-semibold mb-2">Create Collection</h3>
                           <p className="text-muted-foreground text-sm">
                             Add a new custom word collection
@@ -832,7 +833,7 @@ function CollectionCard({
                 }}
                 title={collection.isPublic ? 'Make private' : 'Make public'}
               >
-                {collection.isPublic ? '🔒' : '🌍'}
+                {collection.isPublic ? '<Lock />' : '🌍'}
               </Button>
               <Button 
                 variant="ghost" 

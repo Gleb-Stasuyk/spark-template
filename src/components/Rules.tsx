@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { ArrowLeft } from '@phosphor-icons/react'
 
 import { Team, GameSettings, GameState } from '../App'
 
@@ -183,9 +184,10 @@ export default function Rules({
           <Button
             onClick={handleBack}
             variant="outline"
-            className="px-6"
+            className="px-6 flex items-center gap-2"
             size="lg"
           >
+            <ArrowLeft />
             Back to Game Setup
           </Button>
         </div>

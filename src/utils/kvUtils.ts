@@ -1,5 +1,4 @@
 // Utility functions for KV storage with better error handling and validation
-import { kv } from './localStorage'
 
 export interface CustomCollection {
   id: string
@@ -33,7 +32,7 @@ export function isValidCollection(collection: any): collection is CustomCollecti
 // Safely get and validate custom collections from KV storage
 export async function getCustomCollections(): Promise<CustomCollection[]> {
   try {
-    const data = await kv.get<any>('alias-custom-collections')
+    const data = await spark.kv.get<any>('alias-custom-collections')
     
     if (!data) {
       return []
@@ -42,7 +41,7 @@ export async function getCustomCollections(): Promise<CustomCollection[]> {
     if (!Array.isArray(data)) {
       console.warn('Invalid data structure in KV storage, expected array:', data)
       // Clear corrupted data
-      await kv.set('alias-custom-collections', [])
+      await spark.kv.set('alias-custom-collections', [])
       return []
     }
     
@@ -52,7 +51,7 @@ export async function getCustomCollections(): Promise<CustomCollection[]> {
     // If we filtered out any invalid data, save the cleaned version
     if (validCollections.length !== data.length) {
       console.warn(`Filtered out ${data.length - validCollections.length} invalid collections`)
-      await kv.set('alias-custom-collections', validCollections)
+      await spark.kv.set('alias-custom-collections', validCollections)
     }
     
     return validCollections
@@ -60,7 +59,7 @@ export async function getCustomCollections(): Promise<CustomCollection[]> {
     console.error('Failed to get custom collections:', error)
     // If there's a parsing error, clear the storage and start fresh
     try {
-      await kv.set('alias-custom-collections', [])
+      await spark.kv.set('alias-custom-collections', [])
     } catch (clearError) {
       console.error('Failed to clear corrupted data:', clearError)
     }
@@ -78,7 +77,7 @@ export async function saveCustomCollections(collections: CustomCollection[]): Pr
       console.warn(`Attempting to save invalid collections, filtered out ${collections.length - validCollections.length}`)
     }
     
-    await kv.set('alias-custom-collections', validCollections)
+    await spark.kv.set('alias-custom-collections', validCollections)
     return true
   } catch (error) {
     console.error('Failed to save custom collections:', error)
@@ -120,10 +119,10 @@ export interface UserInfo {
 
 export async function saveUserInfo(user: UserInfo): Promise<boolean> {
   try {
-    const existingUsers = await kv.get<UserInfo[]>('alias-users') || []
+    const existingUsers = await spark.kv.get<UserInfo[]>('alias-users') || []
     const updatedUsers = existingUsers.filter(u => u.id !== user.id)
     updatedUsers.push(user)
-    await kv.set('alias-users', updatedUsers)
+    await spark.kv.set('alias-users', updatedUsers)
     return true
   } catch (error) {
     console.error('Failed to save user info:', error)
@@ -133,7 +132,7 @@ export async function saveUserInfo(user: UserInfo): Promise<boolean> {
 
 export async function getUserByUsername(username: string): Promise<string | null> {
   try {
-    const users = await kv.get<UserInfo[]>('alias-users') || []
+    const users = await spark.kv.get<UserInfo[]>('alias-users') || []
     const user = users.find(u => u.username.toLowerCase() === username.toLowerCase())
     return user ? user.id : null
   } catch (error) {
@@ -144,7 +143,7 @@ export async function getUserByUsername(username: string): Promise<string | null
 
 export async function getUsernameById(userId: string): Promise<string | null> {
   try {
-    const users = await kv.get<UserInfo[]>('alias-users') || []
+    const users = await spark.kv.get<UserInfo[]>('alias-users') || []
     const user = users.find(u => u.id === userId)
     return user ? user.username : null
   } catch (error) {
