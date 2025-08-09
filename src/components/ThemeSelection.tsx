@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Gear, Question, SignOut, Lock, Plus } from '@phosphor-icons/react'
+import { Gear, Question, SignOut, Lock, Plus, Warning, Star, StarHalf } from '@phosphor-icons/react'
 
 import { toast } from 'sonner'
 import { Team, GameSettings, GameState, AuthUser } from '../App'
@@ -23,7 +23,9 @@ import {
   unshareCollection,
   toggleCollectionPublic,
   getUserByUsername,
-  getUsernameById
+  getUsernameById,
+  voteForCollection,
+  getUserVote
 } from '../utils/kvUtils'
 
 interface ThemeSelectionProps {
@@ -118,6 +120,7 @@ export default function ThemeSelection({
   const [description, setDescription] = useState('')
   const [wordsText, setWordsText] = useState('')
   const [isPublic, setIsPublic] = useState(false)
+  const [isAdult, setIsAdult] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   
   // Share state
@@ -136,9 +139,22 @@ export default function ThemeSelection({
     
     try {
       const userCollections = await getUserCollections(currentUser.id)
-      const shared = await getSharedCollections(currentUser.id)
-      setMyCollections(userCollections)
-      setSharedCollections(shared)
+      const shared = await getSharedCollections(currentUser.id, true) // Include adult content
+      
+      // Sort collections by rating (highest first), then by creation date
+      const sortByRating = (collections: CustomCollection[]) => {
+        return collections.sort((a, b) => {
+          const ratingA = a.rating || 0
+          const ratingB = b.rating || 0
+          if (ratingA !== ratingB) {
+            return ratingB - ratingA
+          }
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        })
+      }
+      
+      setMyCollections(sortByRating(userCollections))
+      setSharedCollections(sortByRating(shared))
     } catch (error) {
       console.error('Failed to load custom collections:', error)
       setMyCollections([])
@@ -151,6 +167,7 @@ export default function ThemeSelection({
     setDescription('')
     setWordsText('')
     setIsPublic(false)
+    setIsAdult(false)
     setEditingCollection(null)
   }
 
@@ -188,7 +205,8 @@ export default function ThemeSelection({
           name: name.trim(),
           description: description.trim(),
           words,
-          isPublic
+          isPublic,
+          isAdult
         }
         
         const allCollections = await getCustomCollections()
@@ -206,9 +224,12 @@ export default function ThemeSelection({
           description: description.trim(),
           words,
           isPublic,
+          isAdult,
           userId: currentUser.id,
           createdAt: new Date().toISOString(),
-          sharedWith: []
+          sharedWith: [],
+          rating: 0,
+          voteCount: 0
         }
         
         const allCollections = await getCustomCollections()
@@ -308,6 +329,7 @@ export default function ThemeSelection({
     setDescription(collection.description || '')
     setWordsText(collection.words.join('\n'))
     setIsPublic(collection.isPublic || false)
+    setIsAdult(collection.isAdult || false)
     setIsCreateDialogOpen(true)
   }
 
@@ -588,6 +610,7 @@ export default function ThemeSelection({
                           onDelete={handleDelete}
                           onShare={openShareDialog}
                           onTogglePublic={handleTogglePublic}
+                          onVote={loadCollections}
                           selected={gameState.selectedTheme === `custom-${collection.id}`}
                         />
                       ))}
@@ -619,6 +642,7 @@ export default function ThemeSelection({
                           onDelete={handleDelete}
                           onShare={openShareDialog}
                           onTogglePublic={handleTogglePublic}
+                          onVote={loadCollections}
                           selected={gameState.selectedTheme === `custom-${collection.id}`}
                         />
                       ))}
@@ -697,6 +721,24 @@ export default function ThemeSelection({
                   <Label htmlFor="collection-public" className="text-sm text-muted-foreground">
                     {isPublic ? 'Anyone can see and use this collection' : 'Only you and people you share with can see this collection'}
                   </Label>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="collection-adult">18+ Content</Label>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="collection-adult"
+                    checked={isAdult}
+                    onCheckedChange={setIsAdult}
+                    disabled={isLoading}
+                  />
+                  <div className="flex items-center gap-2">
+                    <Warning className="text-orange-500" size={16} />
+                    <Label htmlFor="collection-adult" className="text-sm text-muted-foreground">
+                      {isAdult ? 'This collection contains adult content (18+)' : 'This collection is suitable for all ages'}
+                    </Label>
+                  </div>
                 </div>
               </div>
 
@@ -779,6 +821,7 @@ interface CollectionCardProps {
   onDelete: (collectionId: string) => void
   onShare: (collection: CustomCollection) => void
   onTogglePublic: (collection: CustomCollection) => void
+  onVote?: () => void
 }
 
 function CollectionCard({ 
@@ -790,8 +833,80 @@ function CollectionCard({
   onEdit, 
   onDelete, 
   onShare, 
-  onTogglePublic 
+  onTogglePublic,
+  onVote 
 }: CollectionCardProps) {
+  const [userVote, setUserVote] = useState<number | null>(null)
+  const [isVoting, setIsVoting] = useState(false)
+
+  useEffect(() => {
+    const loadUserVote = async () => {
+      if (!isOwner) { // Only non-owners can vote
+        const vote = await getUserVote(collection.id, currentUser.id)
+        setUserVote(vote)
+      }
+    }
+    loadUserVote()
+  }, [collection.id, currentUser.id, isOwner])
+
+  const handleVote = async (rating: number) => {
+    if (isOwner || isVoting) return
+
+    setIsVoting(true)
+    try {
+      const success = await voteForCollection(collection.id, currentUser.id, rating)
+      if (success) {
+        setUserVote(rating)
+        toast.success(`Rated ${rating} star${rating > 1 ? 's' : ''}!`)
+        onVote?.() // Refresh collections to update rating
+      } else {
+        toast.error('Failed to submit rating')
+      }
+    } catch (error) {
+      console.error('Error voting:', error)
+      toast.error('Failed to submit rating')
+    } finally {
+      setIsVoting(false)
+    }
+  }
+
+  const renderStars = (rating: number, interactive: boolean = false) => {
+    const stars = []
+    const fullStars = Math.floor(rating)
+    const hasHalfStar = rating % 1 >= 0.5
+
+    for (let i = 1; i <= 5; i++) {
+      const isFull = i <= fullStars
+      const isHalf = i === fullStars + 1 && hasHalfStar
+      const isVoted = userVote === i
+
+      stars.push(
+        <button
+          key={i}
+          onClick={(e) => {
+            e.stopPropagation()
+            if (interactive) handleVote(i)
+          }}
+          disabled={!interactive || isVoting}
+          className={`${
+            interactive ? 'hover:text-yellow-400 cursor-pointer' : 'cursor-default'
+          } ${
+            isFull || isVoted ? 'text-yellow-400' : 'text-gray-300'
+          } transition-colors`}
+          title={interactive ? `Rate ${i} star${i > 1 ? 's' : ''}` : undefined}
+        >
+          {isFull || isVoted ? (
+            <Star weight="fill" size={16} />
+          ) : isHalf ? (
+            <StarHalf weight="fill" size={16} />
+          ) : (
+            <Star size={16} />
+          )}
+        </button>
+      )
+    }
+    return stars
+  }
   return (
     <Card 
       className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
@@ -863,6 +978,12 @@ function CollectionCard({
             <Badge variant="secondary" className="text-xs">
               {collection.words.length} words
             </Badge>
+            {collection.isAdult && (
+              <Badge variant="destructive" className="text-xs">
+                <Warning size={12} className="mr-1" />
+                18+
+              </Badge>
+            )}
             {!isOwner && (
               <Badge variant="outline" className="text-xs">
                 Shared
@@ -874,6 +995,32 @@ function CollectionCard({
               </Badge>
             )}
           </div>
+
+          {/* Rating display */}
+          {(collection.rating && collection.rating > 0) || (!isOwner) ? (
+            <div className="mb-3">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="flex">
+                  {renderStars(collection.rating || 0)}
+                </div>
+                {collection.voteCount && collection.voteCount > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    ({collection.voteCount})
+                  </span>
+                )}
+              </div>
+              
+              {/* Interactive rating for non-owners */}
+              {!isOwner && (
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-xs text-muted-foreground">Rate:</span>
+                  <div className="flex">
+                    {renderStars(userVote || 0, true)}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : null}
           <div className="text-xs text-muted-foreground">
             <p className="font-medium mb-1">Sample words:</p>
             <div className="flex flex-wrap gap-1 justify-center">

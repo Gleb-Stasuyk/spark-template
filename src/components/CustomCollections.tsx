@@ -25,7 +25,10 @@ import {
   X,
   Download,
   FileText,
-  Question
+  Question,
+  Star,
+  StarHalf,
+  Warning
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { 
@@ -38,7 +41,9 @@ import {
   unshareCollection,
   toggleCollectionPublic,
   getUserByUsername,
-  getUsernameById
+  getUsernameById,
+  voteForCollection,
+  getUserVote
 } from '../utils/kvUtils'
 
 interface User {
@@ -65,6 +70,7 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
   const [description, setDescription] = useState('')
   const [wordsText, setWordsText] = useState('')
   const [isPublic, setIsPublic] = useState(false)
+  const [isAdult, setIsAdult] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   
   // Share state
@@ -79,15 +85,29 @@ export default function CustomCollections({ user, onBack }: CustomCollectionsPro
     setDescription('')
     setWordsText('')
     setIsPublic(false)
+    setIsAdult(false)
     setEditingCollection(null)
   }
 
   const loadCollections = async () => {
     try {
       const userCollections = await getUserCollections(user.id)
-      const shared = await getSharedCollections(user.id)
-      setMyCollections(userCollections)
-      setSharedCollections(shared)
+      const shared = await getSharedCollections(user.id, true) // Include adult content for own collections
+      
+      // Sort collections by rating (highest first), then by creation date
+      const sortByRating = (collections: CustomCollection[]) => {
+        return collections.sort((a, b) => {
+          const ratingA = a.rating || 0
+          const ratingB = b.rating || 0
+          if (ratingA !== ratingB) {
+            return ratingB - ratingA
+          }
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        })
+      }
+      
+      setMyCollections(sortByRating(userCollections))
+      setSharedCollections(sortByRating(shared))
     } catch (error) {
       console.error('Error loading collections:', error)
       toast.error('Failed to load collections')
@@ -336,7 +356,8 @@ ${words.join('\n')}`
           name: name.trim(),
           description: description.trim(),
           words,
-          isPublic
+          isPublic,
+          isAdult
         }
         
         const allCollections = await getCustomCollections()
@@ -354,9 +375,12 @@ ${words.join('\n')}`
           description: description.trim(),
           words,
           isPublic,
+          isAdult,
           userId: user.id,
           createdAt: new Date().toISOString(),
-          sharedWith: []
+          sharedWith: [],
+          rating: 0,
+          voteCount: 0
         }
         
         const allCollections = await getCustomCollections()
@@ -455,7 +479,8 @@ ${words.join('\n')}`
     setName(collection.name)
     setDescription(collection.description || '')
     setWordsText(collection.words.join('\n'))
-    setIsPublic(collection.isPublic)
+    setIsPublic(collection.isPublic || false)
+    setIsAdult(collection.isAdult || false)
     setIsCreateDialogOpen(true)
   }
 
@@ -537,11 +562,13 @@ ${words.join('\n')}`
                     <CollectionCard
                       key={collection.id}
                       collection={collection}
+                      currentUser={user}
                       isOwner={true}
                       onEdit={openEditDialog}
                       onDelete={handleDelete}
                       onShare={openShareDialog}
                       onTogglePublic={handleTogglePublic}
+                      onVote={loadCollections}
                     />
                   ))}
                 </div>
@@ -565,11 +592,13 @@ ${words.join('\n')}`
                     <CollectionCard
                       key={collection.id}
                       collection={collection}
+                      currentUser={user}
                       isOwner={false}
                       onEdit={openEditDialog}
                       onDelete={handleDelete}
                       onShare={openShareDialog}
                       onTogglePublic={handleTogglePublic}
+                      onVote={loadCollections}
                     />
                   ))}
                 </div>
@@ -754,6 +783,24 @@ ${words.join('\n')}`
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="collection-adult">18+ Content</Label>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="collection-adult"
+                  checked={isAdult}
+                  onCheckedChange={setIsAdult}
+                  disabled={isLoading}
+                />
+                <div className="flex items-center gap-2">
+                  <Warning className="text-orange-500" size={16} />
+                  <Label htmlFor="collection-adult" className="text-sm text-muted-foreground">
+                    {isAdult ? 'This collection contains adult content (18+)' : 'This collection is suitable for all ages'}
+                  </Label>
+                </div>
+              </div>
+            </div>
+
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={closeDialog} disabled={isLoading}>
                 Cancel
@@ -824,14 +871,85 @@ ${words.join('\n')}`
 // Collection Card Component
 interface CollectionCardProps {
   collection: CustomCollection
+  currentUser: { id: string; username: string; email: string }
   isOwner: boolean
   onEdit: (collection: CustomCollection) => void
   onDelete: (collectionId: string) => void
   onShare: (collection: CustomCollection) => void
   onTogglePublic: (collection: CustomCollection) => void
+  onVote: () => void
 }
 
-function CollectionCard({ collection, isOwner, onEdit, onDelete, onShare, onTogglePublic }: CollectionCardProps) {
+function CollectionCard({ collection, currentUser, isOwner, onEdit, onDelete, onShare, onTogglePublic, onVote }: CollectionCardProps) {
+  const [userVote, setUserVote] = useState<number | null>(null)
+  const [isVoting, setIsVoting] = useState(false)
+
+  useEffect(() => {
+    const loadUserVote = async () => {
+      if (!isOwner) { // Only non-owners can vote
+        const vote = await getUserVote(collection.id, currentUser.id)
+        setUserVote(vote)
+      }
+    }
+    loadUserVote()
+  }, [collection.id, currentUser.id, isOwner])
+
+  const handleVote = async (rating: number) => {
+    if (isOwner || isVoting) return
+
+    setIsVoting(true)
+    try {
+      const success = await voteForCollection(collection.id, currentUser.id, rating)
+      if (success) {
+        setUserVote(rating)
+        toast.success(`Rated ${rating} star${rating > 1 ? 's' : ''}!`)
+        onVote() // Refresh collections to update rating
+      } else {
+        toast.error('Failed to submit rating')
+      }
+    } catch (error) {
+      console.error('Error voting:', error)
+      toast.error('Failed to submit rating')
+    } finally {
+      setIsVoting(false)
+    }
+  }
+
+  const renderStars = (rating: number, interactive: boolean = false) => {
+    const stars = []
+    const fullStars = Math.floor(rating)
+    const hasHalfStar = rating % 1 >= 0.5
+
+    for (let i = 1; i <= 5; i++) {
+      const isFull = i <= fullStars
+      const isHalf = i === fullStars + 1 && hasHalfStar
+      const isVoted = userVote === i
+
+      stars.push(
+        <button
+          key={i}
+          onClick={() => interactive && handleVote(i)}
+          disabled={!interactive || isVoting}
+          className={`${
+            interactive ? 'hover:text-yellow-400 cursor-pointer' : 'cursor-default'
+          } ${
+            isFull || isVoted ? 'text-yellow-400' : 'text-gray-300'
+          } transition-colors`}
+          title={interactive ? `Rate ${i} star${i > 1 ? 's' : ''}` : undefined}
+        >
+          {isFull || isVoted ? (
+            <Star weight="fill" size={16} />
+          ) : isHalf ? (
+            <StarHalf weight="fill" size={16} />
+          ) : (
+            <Star size={16} />
+          )}
+        </button>
+      )
+    }
+    return stars
+  }
+
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
@@ -839,6 +957,12 @@ function CollectionCard({ collection, isOwner, onEdit, onDelete, onShare, onTogg
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <CardTitle className="text-lg">{collection.name}</CardTitle>
+              {collection.isAdult && (
+                <Badge variant="destructive" className="text-xs">
+                  <Warning size={12} className="mr-1" />
+                  18+
+                </Badge>
+              )}
               {collection.isPublic && (
                 <Badge variant="secondary" className="text-xs">
                   <Globe size={12} className="mr-1" />
@@ -894,6 +1018,33 @@ function CollectionCard({ collection, isOwner, onEdit, onDelete, onShare, onTogg
             <span className="text-muted-foreground">Words:</span>
             <Badge variant="outline">{collection.words.length}</Badge>
           </div>
+
+          {/* Rating display */}
+          {(collection.rating && collection.rating > 0) || (!isOwner) ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Rating:</span>
+                <div className="flex">
+                  {renderStars(collection.rating || 0)}
+                </div>
+                {collection.voteCount && collection.voteCount > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    ({collection.voteCount})
+                  </span>
+                )}
+              </div>
+              
+              {/* Interactive rating for non-owners */}
+              {!isOwner && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Rate:</span>
+                  <div className="flex">
+                    {renderStars(userVote || 0, true)}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : null}
           
           <div className="text-sm text-muted-foreground">
             <p className="font-medium mb-1">Sample words:</p>
